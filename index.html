@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Cycling Logs</title>
+
+<!-- Leaflet.js -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+/* ── リセット・ベース ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --green:   #1D9E75;
+  --green-l: #E1F5EE;
+  --green-d: #085041;
+  --blue:    #378ADD;
+  --blue-l:  #E6F1FB;
+  --amber:   #EF9F27;
+  --red:     #D85A30;
+  --ink:     #1a1a1a;
+  --muted:   #6b7280;
+  --border:  #e5e7eb;
+  --bg:      #f5f7fa;
+  --white:   #ffffff;
+  --radius:  10px;
+  --shadow:  0 2px 8px rgba(0,0,0,.10);
+  --font:    'DM Sans', system-ui, sans-serif;
+  --sb-w:    280px;
+}
+html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--ink); font-size: 14px; }
+
+/* ── レイアウト ── */
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* ── トップバー ── */
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 1000;
+}
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: var(--green-d); }
+.logo svg { width: 20px; height: 20px; color: var(--green); }
+.top-stats { display: flex; gap: 16px; }
+.ts { text-align: right; }
+.ts-n { font-size: 13px; font-weight: 600; color: var(--ink); }
+.ts-l { font-size: 10px; color: var(--muted); }
+
+/* ── メイン（サイドバー＋マップ）── */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* ── サイドバー ── */
+.sidebar {
+  width: var(--sb-w);
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.sb-body { overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+
+/* フィルター */
+.filter-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
+.filter-title { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 7px; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag {
+  font-size: 11px; padding: 3px 8px; border-radius: 20px;
+  border: 1px solid var(--border); color: var(--muted);
+  cursor: pointer; background: var(--white); transition: all .15s; line-height: 1.6;
+}
+.tag:hover { border-color: var(--green); color: var(--green-d); }
+.tag.on { background: var(--green-l); border-color: var(--green); color: var(--green-d); font-weight: 600; }
+
+/* コース一覧 */
+.course-list { display: flex; flex-direction: column; gap: 5px; }
+.list-header { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; padding: 2px 2px; }
+.cc {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 9px 10px; cursor: pointer; background: var(--white);
+  transition: all .15s;
+}
+.cc:hover { border-color: var(--green); background: var(--green-l); }
+.cc.active { border-color: var(--green); border-width: 2px; background: var(--green-l); }
+.cc-name { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; color: var(--muted); }
+.cc-meta span { display: flex; align-items: center; gap: 2px; }
+.cc-tags { display: flex; gap: 3px; margin-top: 4px; flex-wrap: wrap; }
+.area-tag {
+  font-size: 10px; padding: 1px 6px; border-radius: 8px;
+  background: var(--bg); color: var(--muted); border: 1px solid var(--border);
+}
+.area-tag.sendai  { background: var(--green-l); color: var(--green-d); border-color: #9FE1CB; }
+.area-tag.kochi   { background: #FAEEDA; color: #633806; border-color: #EF9F27; }
+.area-tag.shimana { background: var(--blue-l);  color: #0C447C; border-color: #85B7EB; }
+.area-tag.rinko   { background: #F3EEF8; color: #5B2D8E; border-color: #C4A8E8; }
+.src-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+.src-rk { background: var(--green); }
+.src-br { background: var(--blue); }
+
+.empty-msg { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 0; }
+.loading-msg { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 0; }
+
+/* ── マップエリア ── */
+.map-wrap { flex: 1; position: relative; }
+#map { width: 100%; height: 100%; }
+
+/* ── コース詳細パネル ── */
+.detail-panel {
+  position: absolute;
+  bottom: 16px; left: 16px;
+  width: 230px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 13px 14px;
+  z-index: 500;
+  display: none;
+}
+.detail-panel.show { display: block; }
+.dp-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px; line-height: 1.4; }
+.dp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px; }
+.dp-stat { background: var(--bg); border-radius: 7px; padding: 6px 8px; }
+.dp-stat-n { font-size: 14px; font-weight: 700; color: var(--ink); }
+.dp-stat-l { font-size: 9px; color: var(--muted); margin-top: 1px; }
+.dp-stat.bryton { background: var(--blue-l); }
+.dp-stat.bryton .dp-stat-n { color: #0C447C; }
+.elev-wrap { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 2px; }
+.elev-label { font-size: 9px; color: var(--muted); margin-bottom: 3px; }
+.elev-svg { width: 100%; height: 44px; }
+.dp-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 7px; }
+.dp-date { font-size: 9px; color: var(--muted); }
+.dp-close { font-size: 11px; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 5px; border: 1px solid var(--border); }
+.dp-close:hover { background: var(--bg); }
+
+/* ── マップ上のコントロール ── */
+.map-controls {
+  position: absolute;
+  top: 12px; right: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+  z-index: 500;
+}
+.mc-btn {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-family: var(--font);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 5px;
+  transition: all .15s;
+}
+.mc-btn:hover { background: var(--green-l); border-color: var(--green); color: var(--green-d); }
+.mc-btn.on { background: var(--green-l); border-color: var(--green); color: var(--green-d); font-weight: 600; }
+
+/* ── ローディングオーバーレイ ── */
+.map-loading {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 600; font-size: 14px; color: var(--muted);
+  display: none;
+}
+.map-loading.show { display: flex; }
+
+/* ── スピナー ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; }
+
+/* ── モバイル対応 ── */
+@media (max-width: 700px) {
+  :root { --sb-w: 100%; }
+  .main { flex-direction: column; }
+  .sidebar { width: 100%; height: 40vh; border-right: none; border-bottom: 1px solid var(--border); }
+  .top-stats { display: none; }
+  .detail-panel { width: calc(100% - 32px); }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- トップバー -->
+  <header class="topbar">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/>
+        <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V9l-3-3 5 3 2 5"/>
+      </svg>
+      My Cycling Logs
+    </div>
+    <div class="top-stats" id="topStats">
+      <div class="ts"><div class="ts-n" id="statCount">—</div><div class="ts-l">コース数</div></div>
+      <div class="ts"><div class="ts-n" id="statDist">—</div><div class="ts-l">総距離</div></div>
+      <div class="ts"><div class="ts-n" id="statElev">—</div><div class="ts-l">総獲得標高</div></div>
+    </div>
+  </header>
+
+  <div class="main">
+    <!-- サイドバー -->
+    <aside class="sidebar">
+      <div class="sb-body">
+
+        <!-- エリアフィルター -->
+        <div class="filter-card">
+          <div class="filter-title">エリア</div>
+          <div class="tags" id="areaFilter">
+            <span class="tag on" data-val="">全て</span>
+            <span class="tag" data-val="仙台市内">仙台市内</span>
+            <span class="tag" data-val="秋保・定義">秋保・定義</span>
+            <span class="tag" data-val="作並">作並</span>
+            <span class="tag" data-val="七ツ森">七ツ森</span>
+            <span class="tag" data-val="泉・富谷">泉・富谷</span>
+            <span class="tag" data-val="高知">高知</span>
+            <span class="tag" data-val="しまなみ">しまなみ</span>
+            <span class="tag" data-val="輪行先">輪行先</span>
+            <span class="tag" data-val="その他">その他</span>
+          </div>
+        </div>
+
+        <!-- 距離帯フィルター -->
+        <div class="filter-card">
+          <div class="filter-title">距離帯</div>
+          <div class="tags" id="distFilter">
+            <span class="tag on" data-min="" data-max="">全て</span>
+            <span class="tag" data-min="0"   data-max="20" >〜20km</span>
+            <span class="tag" data-min="20"  data-max="50" >20〜50km</span>
+            <span class="tag" data-min="50"  data-max="80" >50〜80km</span>
+            <span class="tag" data-min="80"  data-max="120">80〜120km</span>
+            <span class="tag" data-min="120" data-max=""   >120km〜</span>
+          </div>
+        </div>
+
+        <!-- コースタイプフィルター -->
+        <div class="filter-card">
+          <div class="filter-title">コースタイプ</div>
+          <div class="tags" id="typeFilter">
+            <span class="tag on" data-val="">全て</span>
+            <span class="tag" data-val="ヒルクライム">ヒルクライム</span>
+            <span class="tag" data-val="山岳">山岳</span>
+            <span class="tag" data-val="平坦">平坦</span>
+            <span class="tag" data-val="サイクリングロード">サイクリングロード</span>
+            <span class="tag" data-val="輪行">輪行</span>
+          </div>
+        </div>
+
+        <!-- コース一覧 -->
+        <div class="list-header" id="listHeader">コース一覧</div>
+        <div class="course-list" id="courseList">
+          <div class="loading-msg"><span class="spinner" style="display:inline-block;vertical-align:middle;margin-right:6px;"></span>読み込み中...</div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- マップ -->
+    <div class="map-wrap">
+      <div id="map"></div>
+
+      <!-- マップ上ボタン -->
+      <div class="map-controls">
+        <button class="mc-btn" id="btnAllRoutes" onclick="toggleAllRoutes()">🗺 全コース表示</button>
+      </div>
+
+      <!-- マップローディング -->
+      <div class="map-loading" id="mapLoading">
+        <div class="spinner"></div>ルートを読み込み中...
+      </div>
+
+      <!-- コース詳細パネル -->
+      <div class="detail-panel" id="detailPanel">
+        <div class="dp-title" id="dpTitle">—</div>
+        <div class="dp-grid" id="dpGrid"></div>
+        <div class="elev-wrap" id="dpElevWrap" style="display:none;">
+          <div class="elev-label">標高プロファイル</div>
+          <svg class="elev-svg" id="dpElev" viewBox="0 0 200 44" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="dp-footer">
+          <span class="dp-date" id="dpDate"></span>
+          <span class="dp-close" onclick="closeDetail()">✕ 閉じる</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── 設定 ──────────────────────────────────────────────────
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec';
+const ACCESS_KEY = 'aethos2026';
+
+// エリアごとのルート色
+const AREA_COLORS = {
+  '仙台市内'  : '#1D9E75',
+  '秋保・定義': '#2E8B57',
+  '作並'      : '#3CB371',
+  '七ツ森'    : '#20B2AA',
+  '泉・富谷'  : '#66CDAA',
+  '高知'      : '#EF9F27',
+  'しまなみ'  : '#378ADD',
+  '輪行先'    : '#9B59B6',
+  'その他'    : '#888888',
+};
+
+// ── 状態管理 ──────────────────────────────────────────────
+let allCourses    = [];
+let courseFilter  = { area: '', dist_min: '', dist_max: '', type: '' };
+let routeLayers   = {};   // { courseId: L.polyline }
+let activeId      = null;
+let showAllRoutes = false;
+let gpxCache      = {};   // { courseId: [[lat,lon],...] }
+let map;
+
+// ── 地図初期化 ────────────────────────────────────────────
+function initMap() {
+  map = L.map('map', { zoomControl: true }).setView([38.26, 140.87], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18,
+  }).addTo(map);
+}
+
+// ── コース一覧取得 ────────────────────────────────────────
+async function loadCourses() {
+  try {
+    const url = `${GAS_URL}?key=${encodeURIComponent(ACCESS_KEY)}&action=list`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.status !== 'ok') return;
+    allCourses = data.courses;
+    updateStats();
+    renderList();
+  } catch(e) {
+    document.getElementById('courseList').innerHTML =
+      '<div class="empty-msg">読み込みエラー</div>';
+  }
+}
+
+// ── 統計更新 ──────────────────────────────────────────────
+function updateStats() {
+  const courses = getFilteredCourses();
+  const totalDist = courses.reduce((s,c) => s + (parseFloat(c.distance_km)||0), 0);
+  const totalElev = courses.reduce((s,c) => s + (parseFloat(c.elevation_m)||0), 0);
+  document.getElementById('statCount').textContent = courses.length + ' コース';
+  document.getElementById('statDist').textContent  = totalDist.toFixed(0) + ' km';
+  document.getElementById('statElev').textContent  = totalElev.toFixed(0) + ' m';
+}
+
+// ── フィルター後のコース ──────────────────────────────────
+function getFilteredCourses() {
+  return allCourses.filter(c => {
+    const d = parseFloat(c.distance_km) || 0;
+    if (courseFilter.area && c.area !== courseFilter.area) return false;
+    if (courseFilter.type && c.course_type !== courseFilter.type) return false;
+    if (courseFilter.dist_min !== '' && d < parseFloat(courseFilter.dist_min)) return false;
+    if (courseFilter.dist_max !== '' && d >= parseFloat(courseFilter.dist_max)) return false;
+    return true;
+  });
+}
+
+// ── コース一覧レンダリング ────────────────────────────────
+function renderList() {
+  const courses = getFilteredCourses();
+  const list    = document.getElementById('courseList');
+  document.getElementById('listHeader').textContent =
+    `コース一覧（${courses.length}件）`;
+  updateStats();
+
+  if (courses.length === 0) {
+    list.innerHTML = '<div class="empty-msg">該当するコースがありません</div>';
+    return;
+  }
+
+  list.innerHTML = courses.map(c => {
+    const color   = AREA_COLORS[c.area] || '#888';
+    const areaKey = getAreaKey(c.area);
+    const src     = c.data_source || '';
+    const srcDot  = src.includes('bryton')
+      ? `<span class="src-dot src-br"></span>`
+      : `<span class="src-dot src-rk"></span>`;
+    return `
+    <div class="cc ${activeId === c.id ? 'active' : ''}"
+         onclick="selectCourse('${c.id}')" data-id="${c.id}">
+      <div class="cc-name">${esc(c.name)}</div>
+      <div class="cc-meta">
+        <span>📍 ${parseFloat(c.distance_km||0).toFixed(1)} km</span>
+        <span>⛰ ${Math.round(c.elevation_m||0)} m</span>
+        <span>⏱ ${fmtDur(parseInt(c.duration_sec||0))}</span>
+      </div>
+      <div class="cc-tags">
+        <span class="area-tag ${areaKey}">${esc(c.area||'—')}</span>
+        ${srcDot}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── コース選択・ルート表示 ────────────────────────────────
+async function selectCourse(id) {
+  activeId = id;
+  renderList();
+
+  if (!showAllRoutes) {
+    // 既存ルートをクリア
+    Object.values(routeLayers).forEach(l => map.removeLayer(l));
+    routeLayers = {};
+  }
+
+  await showRoute(id, true);
+}
+
+// ── ルート表示（GPX取得→描画）────────────────────────────
+async function showRoute(id, fitBounds) {
+  const course = allCourses.find(c => c.id == id);
+  if (!course) return;
+  const color = AREA_COLORS[course.area] || '#1D9E75';
+
+  // キャッシュ済み
+  if (gpxCache[id]) {
+    drawRoute(id, gpxCache[id], color, fitBounds);
+    showDetailPanel(course, gpxCache[id]);
+    return;
+  }
+
+  document.getElementById('mapLoading').classList.add('show');
+
+  try {
+    const url  = `${GAS_URL}?key=${encodeURIComponent(ACCESS_KEY)}&action=gpx&id=${id}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+
+    const pts = parseGpxContent(data.content);
+    gpxCache[id] = pts;
+    drawRoute(id, pts, color, fitBounds);
+    showDetailPanel(course, pts);
+  } catch(e) {
+    console.error('GPX取得エラー:', e);
+  } finally {
+    document.getElementById('mapLoading').classList.remove('show');
+  }
+}
+
+// ── GPX文字列からLatLng配列を取得 ────────────────────────
+function parseGpxContent(content) {
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(content, 'text/xml');
+  const ns     = 'http://www.topografix.com/GPX/1/1';
+  const pts    = [];
+
+  // GPX名前空間あり
+  let trkpts = Array.from(doc.getElementsByTagNameNS(ns, 'trkpt'));
+  // なければ名前空間なし
+  if (trkpts.length === 0) trkpts = Array.from(doc.getElementsByTagName('trkpt'));
+
+  trkpts.forEach(pt => {
+    const lat = parseFloat(pt.getAttribute('lat'));
+    const lon = parseFloat(pt.getAttribute('lon'));
+    let ele = null;
+    const eleEl = pt.getElementsByTagNameNS(ns,'ele')[0] || pt.getElementsByTagName('ele')[0];
+    if (eleEl) ele = parseFloat(eleEl.textContent);
+    if (!isNaN(lat) && !isNaN(lon)) pts.push([lat, lon, ele]);
+  });
+  return pts;
+}
+
+// ── ルートを地図に描画 ────────────────────────────────────
+function drawRoute(id, pts, color, fitBounds) {
+  if (routeLayers[id]) map.removeLayer(routeLayers[id]);
+
+  const latlngs = pts.map(p => [p[0], p[1]]);
+  const line = L.polyline(latlngs, {
+    color,
+    weight   : activeId == id ? 4 : 2.5,
+    opacity  : activeId == id ? 0.9 : 0.5,
+  }).addTo(map);
+
+  // スタートマーカー
+  if (latlngs.length > 0) {
+    L.circleMarker(latlngs[0], {
+      radius: 6, fillColor: color, color: '#fff',
+      weight: 2, fillOpacity: 1,
+    }).addTo(map).bindTooltip('スタート', { permanent: false });
+  }
+
+  routeLayers[id] = line;
+  if (fitBounds && latlngs.length > 0) map.fitBounds(line.getBounds(), { padding: [40, 40] });
+}
+
+// ── 詳細パネル表示 ────────────────────────────────────────
+function showDetailPanel(course, pts) {
+  document.getElementById('dpTitle').textContent = course.name || '—';
+
+  const hasHr  = course.avg_hr  && course.avg_hr  > 0;
+  const hasCad = course.avg_cadence && course.avg_cadence > 0;
+
+  const stats = [
+    { n: parseFloat(course.distance_km||0).toFixed(1) + ' km', l: '距離' },
+    { n: Math.round(course.elevation_m||0) + ' m',             l: '獲得標高' },
+    { n: fmtDur(parseInt(course.duration_sec||0)),              l: '走行時間' },
+    { n: parseFloat(course.avg_speed_kmh||0).toFixed(1) + ' km/h', l: '平均速度' },
+  ];
+  if (hasHr)  stats.push({ n: course.avg_hr  + ' bpm', l: '平均心拍',     cls: 'bryton' });
+  if (hasCad) stats.push({ n: course.avg_cadence + ' rpm', l: '平均ケイデンス', cls: 'bryton' });
+
+  document.getElementById('dpGrid').innerHTML = stats.map(s =>
+    `<div class="dp-stat ${s.cls||''}">
+      <div class="dp-stat-n">${s.n}</div>
+      <div class="dp-stat-l">${s.l}</div>
+    </div>`
+  ).join('');
+
+  // 標高プロファイル
+  const eles = pts.map(p => p[2]).filter(e => e !== null && !isNaN(e));
+  if (eles.length > 1) {
+    const eMin = Math.min(...eles), eMax = Math.max(...eles);
+    const eRange = eMax - eMin || 1;
+    // 間引き（最大100点）
+    const step  = Math.max(1, Math.floor(eles.length / 100));
+    const sampled = eles.filter((_, i) => i % step === 0);
+    const W = 200, H = 44, PAD = 4;
+    const pts2 = sampled.map((e, i) => {
+      const x = (i / (sampled.length - 1)) * W;
+      const y = H - PAD - ((e - eMin) / eRange) * (H - PAD * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const color = AREA_COLORS[course.area] || '#1D9E75';
+    const polyPts = pts2.join(' ');
+    const fillPts = `0,${H} ` + polyPts + ` ${W},${H}`;
+    document.getElementById('dpElev').innerHTML = `
+      <defs>
+        <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0.03"/>
+        </linearGradient>
+      </defs>
+      <polygon points="${fillPts}" fill="url(#eg)"/>
+      <polyline points="${polyPts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    `;
+    document.getElementById('dpElevWrap').style.display = 'block';
+  } else {
+    document.getElementById('dpElevWrap').style.display = 'none';
+  }
+
+  // フッター
+  const src = (course.data_source||'').includes('bryton') ? 'Bryton' : 'Runkeeper';
+  document.getElementById('dpDate').textContent =
+    (course.date || '—') + ' · ' + src;
+
+  document.getElementById('detailPanel').classList.add('show');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('show');
+}
+
+// ── 全コース表示トグル ────────────────────────────────────
+async function toggleAllRoutes() {
+  showAllRoutes = !showAllRoutes;
+  const btn = document.getElementById('btnAllRoutes');
+  btn.classList.toggle('on', showAllRoutes);
+  btn.textContent = showAllRoutes ? '🗺 全コース非表示' : '🗺 全コース表示';
+
+  if (!showAllRoutes) {
+    // activeId のみ残す
+    Object.keys(routeLayers).forEach(id => {
+      if (id !== activeId) {
+        map.removeLayer(routeLayers[id]);
+        delete routeLayers[id];
+      }
+    });
+    return;
+  }
+
+  // 全コースのルートを表示
+  const courses = getFilteredCourses();
+  document.getElementById('mapLoading').classList.add('show');
+  for (const c of courses) {
+    if (!gpxCache[c.id]) {
+      try {
+        const url  = `${GAS_URL}?key=${encodeURIComponent(ACCESS_KEY)}&action=gpx&id=${c.id}`;
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (data.status === 'ok') gpxCache[c.id] = parseGpxContent(data.content);
+      } catch(e) { /* skip */ }
+    }
+    if (gpxCache[c.id]) {
+      const color = AREA_COLORS[c.area] || '#888';
+      drawRoute(c.id, gpxCache[c.id], color, false);
+    }
+  }
+  document.getElementById('mapLoading').classList.remove('show');
+
+  // 全ルートに合わせてズーム
+  const allLayers = Object.values(routeLayers);
+  if (allLayers.length > 0) {
+    const group = L.featureGroup(allLayers);
+    map.fitBounds(group.getBounds(), { padding: [30, 30] });
+  }
+}
+
+// ── フィルター設定 ────────────────────────────────────────
+function setupFilters() {
+  // エリア
+  document.getElementById('areaFilter').addEventListener('click', e => {
+    const tag = e.target.closest('.tag');
+    if (!tag) return;
+    document.querySelectorAll('#areaFilter .tag').forEach(t => t.classList.remove('on'));
+    tag.classList.add('on');
+    courseFilter.area = tag.dataset.val;
+    renderList();
+    if (showAllRoutes) { showAllRoutes = false; toggleAllRoutes(); }
+  });
+
+  // 距離帯
+  document.getElementById('distFilter').addEventListener('click', e => {
+    const tag = e.target.closest('.tag');
+    if (!tag) return;
+    document.querySelectorAll('#distFilter .tag').forEach(t => t.classList.remove('on'));
+    tag.classList.add('on');
+    courseFilter.dist_min = tag.dataset.min || '';
+    courseFilter.dist_max = tag.dataset.max || '';
+    renderList();
+  });
+
+  // タイプ
+  document.getElementById('typeFilter').addEventListener('click', e => {
+    const tag = e.target.closest('.tag');
+    if (!tag) return;
+    document.querySelectorAll('#typeFilter .tag').forEach(t => t.classList.remove('on'));
+    tag.classList.add('on');
+    courseFilter.type = tag.dataset.val;
+    renderList();
+  });
+}
+
+// ── ユーティリティ ────────────────────────────────────────
+function fmtDur(sec) {
+  if (!sec) return '—';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return `${h}:${String(m).padStart(2,'0')}`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function getAreaKey(area) {
+  if (!area) return '';
+  if (['仙台市内','秋保・定義','作並','七ツ森','泉・富谷'].includes(area)) return 'sendai';
+  if (area === '高知')   return 'kochi';
+  if (area === 'しまなみ') return 'shimana';
+  if (area === '輪行先') return 'rinko';
+  return '';
+}
+
+// ── 起動 ──────────────────────────────────────────────────
+initMap();
+setupFilters();
+loadCourses();
+</script>
+</body>
+</html>
