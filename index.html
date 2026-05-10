@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycling Logs — 管理画面</title>
+<style>
+  /* ── リセット・ベース ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green:   #1D9E75;
+    --green-l: #E1F5EE;
+    --green-d: #085041;
+    --blue:    #378ADD;
+    --blue-l:  #E6F1FB;
+    --amber:   #EF9F27;
+    --red:     #E24B4A;
+    --ink:     #1a1a1a;
+    --muted:   #6b7280;
+    --border:  #e5e7eb;
+    --bg:      #f5f7fa;
+    --white:   #ffffff;
+    --radius:  10px;
+    --shadow:  0 1px 4px rgba(0,0,0,.08);
+    --font:    'DM Sans', system-ui, sans-serif;
+  }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── ヘッダー ── */
+  .header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--green-d);
+  }
+  .logo svg { width: 22px; height: 22px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .key-badge {
+    font-size: 11px;
+    background: var(--green-l);
+    color: var(--green-d);
+    border: 1px solid #9FE1CB;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-family: monospace;
+  }
+
+  /* ── メインレイアウト ── */
+  .main { max-width: 960px; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── カード ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    background: #fafafa;
+  }
+  .card-header .icon { font-size: 18px; }
+  .card-body { padding: 20px; }
+
+  /* ── ドロップゾーン ── */
+  .dropzone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: #fafafa;
+  }
+  .dropzone.drag-over {
+    border-color: var(--green);
+    background: var(--green-l);
+  }
+  .dropzone.has-file {
+    border-color: var(--green);
+    border-style: solid;
+    background: var(--green-l);
+  }
+  .drop-icon { font-size: 40px; margin-bottom: 8px; opacity: .5; }
+  .drop-main { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .drop-sub  { font-size: 12px; color: var(--muted); }
+  .drop-file-name {
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green-d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  #fileInput { display: none; }
+
+  /* ── 解析結果プレビュー ── */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .preview-stat {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .preview-stat .n { font-size: 18px; font-weight: 700; color: var(--ink); }
+  .preview-stat .l { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .preview-stat.bryton { background: var(--blue-l); }
+  .preview-stat.bryton .n { color: #0C447C; }
+
+  /* ── フォーム ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .03em; }
+  input[type="text"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--white);
+    transition: border-color .2s, box-shadow .2s;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(29,158,117,.12);
+  }
+  textarea { resize: vertical; min-height: 60px; }
+
+  /* ── ボタン ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    border: none;
+    transition: all .18s;
+  }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--green);
+    color: #fff;
+  }
+  .btn-primary:not(:disabled):hover { background: var(--green-d); }
+  .btn-danger {
+    background: #fff;
+    color: var(--red);
+    border: 1px solid #f5c6c6;
+  }
+  .btn-danger:hover { background: #FFF0F0; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  /* ── ステータス・トースト ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    z-index: 999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .3s ease;
+    max-width: 320px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--green-d); }
+  .toast.error   { background: #991b1b; }
+
+  /* ── コース一覧テーブル ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid #f0f0f0; }
+  tbody tr:hover { background: #f8fdf9; }
+  tbody td { padding: 10px 12px; color: var(--ink); vertical-align: middle; }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .badge-rk  { background: var(--green-l); color: var(--green-d); border: 1px solid #9FE1CB; }
+  .badge-br  { background: var(--blue-l);  color: #0C447C;        border: 1px solid #85B7EB; }
+  .badge-man { background: #F1EFE8;        color: #444;           border: 1px solid #D3D1C7; }
+  .area-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .loading-row td { text-align: center; color: var(--muted); padding: 32px; }
+  .empty-row  td { text-align: center; color: var(--muted); padding: 32px; }
+
+  /* ── プログレスバー ── */
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    width: 0%;
+    transition: width .3s;
+  }
+
+  /* ── ローディングスピナー ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+
+  /* ── レスポンシブ ── */
+  @media (max-width: 600px) {
+    .preview-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid    { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<header class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/>
+      <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V9l-3-3 5 3 2 5"/>
+    </svg>
+    Cycling Logs — 管理画面
+  </div>
+  <div class="header-right">
+    <span class="key-badge" id="keyBadge">🔑 未設定</span>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ① 設定カード -->
+  <div class="card">
+    <div class="card-header">
+      <span class="icon">⚙️</span> GAS 接続設定
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>GAS ウェブアプリ URL</label>
+          <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec">
+        </div>
+        <div class="form-group">
+          <label>ACCESS KEY</label>
+          <input type="text" id="accessKey" placeholder="GASに設定したキー" value="">
+        </div>
+        <div class="form-group" style="align-self:flex-end;">
+          <button class="btn btn-primary" onclick="saveConfig()">保存して接続確認</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② アップロードカード -->
+  <div class="card">
+    <div class="card-header">
+      <span class="icon">📁</span> GPX / TCX アップロード
+    </div>
+    <div class="card-body">
+
+      <!-- ドロップゾーン -->
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-icon">🗺️</div>
+        <div class="drop-main">ここにファイルをドロップ</div>
+        <div class="drop-sub">.gpx / .tcx に対応（Runkeeper・Bryton どちらも可）</div>
+        <div class="drop-file-name" id="dropFileName" style="display:none;"></div>
+      </div>
+      <input type="file" id="fileInput" accept=".gpx,.tcx" onchange="onFileSelect(this.files[0])">
+
+      <!-- 解析プレビュー -->
+      <div id="previewArea" style="display:none; margin-top:16px;">
+        <div style="font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px;">📊 ファイルから自動解析（アップロード後に確定）</div>
+        <div class="preview-grid" id="previewGrid"></div>
+      </div>
+
+      <hr style="margin:20px 0; border:none; border-top:1px solid var(--border);">
+
+      <!-- コース情報入力 -->
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>コース名 *</label>
+          <input type="text" id="fName" placeholder="例：七ツ森周回ライド">
+        </div>
+        <div class="form-group">
+          <label>ライド日</label>
+          <input type="date" id="fDate">
+        </div>
+        <div class="form-group">
+          <label>エリア</label>
+          <select id="fArea">
+            <option value="">選択してください</option>
+            <option>仙台市内</option>
+            <option>秋保・定義</option>
+            <option>作並</option>
+            <option>七ツ森</option>
+            <option>泉・富谷</option>
+            <option>高知</option>
+            <option>しまなみ</option>
+            <option>輪行先</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>コースタイプ</label>
+          <select id="fType">
+            <option value="">選択してください</option>
+            <option>ヒルクライム</option>
+            <option>山岳</option>
+            <option>平坦</option>
+            <option>サイクリングロード</option>
+            <option>輪行</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>メモ（任意）</label>
+          <textarea id="fMemo" placeholder="コメント・感想など"></textarea>
+        </div>
+      </div>
+
+      <!-- アップロードボタン -->
+      <div class="btn-row">
+        <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled>
+          📤 アップロード登録
+        </button>
+        <button class="btn btn-danger" onclick="resetForm()">リセット</button>
+        <span id="uploadStatus" style="font-size:13px; color:var(--muted);"></span>
+      </div>
+      <div class="progress-bar" id="progressBar" style="display:none;">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ③ コース一覧カード -->
+  <div class="card">
+    <div class="card-header" style="justify-content:space-between;">
+      <span style="display:flex;align-items:center;gap:8px;"><span class="icon">📋</span> 登録済みコース</span>
+      <button class="btn btn-primary btn-sm" onclick="loadCourseList()">🔄 更新</button>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>コース名</th>
+              <th>日付</th>
+              <th>エリア</th>
+              <th>距離</th>
+              <th>獲得標高</th>
+              <th>タイム</th>
+              <th>Avg速度</th>
+              <th>心拍/ケイデンス</th>
+              <th>ソース</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="courseTableBody">
+            <tr class="loading-row"><td colspan="10">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- トースト -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 設定 ──────────────────────────────────────────────────
+let GAS_URL    = localStorage.getItem('cl_gas_url')  || '';
+let ACCESS_KEY = localStorage.getItem('cl_access_key') || '';
+let selectedFile = null;
+let parsedPreview = null;
+
+// 初期値をinputに反映
+window.addEventListener('DOMContentLoaded', () => {
+  if (GAS_URL)    document.getElementById('gasUrl').value    = GAS_URL;
+  if (ACCESS_KEY) document.getElementById('accessKey').value = ACCESS_KEY;
+  updateKeyBadge();
+  if (GAS_URL && ACCESS_KEY) loadCourseList();
+});
+
+// ── 設定保存 ──────────────────────────────────────────────
+function saveConfig() {
+  GAS_URL    = document.getElementById('gasUrl').value.trim();
+  ACCESS_KEY = document.getElementById('accessKey').value.trim();
+  localStorage.setItem('cl_gas_url',    GAS_URL);
+  localStorage.setItem('cl_access_key', ACCESS_KEY);
+  updateKeyBadge();
+  loadCourseList();
+  showToast('接続設定を保存しました', 'success');
+}
+
+function updateKeyBadge() {
+  const b = document.getElementById('keyBadge');
+  b.textContent = ACCESS_KEY ? `🔑 ${ACCESS_KEY.slice(0,4)}****` : '🔑 未設定';
+}
+
+// ── ドラッグ＆ドロップ ────────────────────────────────────
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) onFileSelect(f);
+});
+
+// ── ファイル選択 ──────────────────────────────────────────
+function onFileSelect(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['gpx','tcx'].includes(ext)) {
+    showToast('.gpx または .tcx ファイルを選んでください', 'error');
+    return;
+  }
+  selectedFile = file;
+  dz.classList.add('has-file');
+
+  const fn = document.getElementById('dropFileName');
+  fn.style.display = 'flex';
+  fn.innerHTML = `✅ ${file.name} <span style="color:var(--muted);font-weight:400;">(${(file.size/1024).toFixed(1)} KB)</span>`;
+
+  // ファイルをローカルで軽く解析してプレビュー表示
+  const reader = new FileReader();
+  reader.onload = e => localPreview(e.target.result, ext, file.name);
+  reader.readAsText(file, 'UTF-8');
+
+  document.getElementById('uploadBtn').disabled = false;
+}
+
+// ── ローカルプレビュー（送信前の即時表示）────────────────
+function localPreview(content, ext, fileName) {
+  try {
+    const parser = new DOMParser();
+    let pts = [];
+
+    if (ext === 'gpx') {
+      const doc = parser.parseFromString(content, 'text/xml');
+      const ns  = 'http://www.topografix.com/GPX/1/1';
+      const trkpts = doc.getElementsByTagNameNS(ns, 'trkpt');
+
+      // コース名をファイルから取得してフォームにセット
+      const nameEl = doc.getElementsByTagNameNS(ns, 'name')[0];
+      if (nameEl && !document.getElementById('fName').value) {
+        document.getElementById('fName').value = nameEl.textContent.replace(/Cycling\s+/i,'').trim();
+      }
+      // 日付
+      const timeEl = trkpts[0] && trkpts[0].getElementsByTagNameNS(ns,'time')[0];
+      if (timeEl && !document.getElementById('fDate').value) {
+        document.getElementById('fDate').value = timeEl.textContent.slice(0,10);
+      }
+
+      for (let i = 0; i < trkpts.length; i++) {
+        const lat = parseFloat(trkpts[i].getAttribute('lat'));
+        const lon = parseFloat(trkpts[i].getAttribute('lon'));
+        const eleEl = trkpts[i].getElementsByTagNameNS(ns,'ele')[0];
+        const ele   = eleEl ? parseFloat(eleEl.textContent) : null;
+        const tEl   = trkpts[i].getElementsByTagNameNS(ns,'time')[0];
+        const time  = tEl ? new Date(tEl.textContent) : null;
+        pts.push({ lat, lon, ele, time });
+      }
+
+    } else if (ext === 'tcx') {
+      const doc = parser.parseFromString(content, 'text/xml');
+      const ns  = 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2';
+      const tps = doc.getElementsByTagNameNS(ns,'Trackpoint');
+      const idEl = doc.getElementsByTagNameNS(ns,'Id')[0];
+      if (idEl && !document.getElementById('fDate').value) {
+        document.getElementById('fDate').value = idEl.textContent.slice(0,10);
+      }
+      for (let i = 0; i < tps.length; i++) {
+        const posEl = tps[i].getElementsByTagNameNS(ns,'Position')[0];
+        if (!posEl) continue;
+        const lat = parseFloat(posEl.getElementsByTagNameNS(ns,'LatitudeDegrees')[0]?.textContent);
+        const lon = parseFloat(posEl.getElementsByTagNameNS(ns,'LongitudeDegrees')[0]?.textContent);
+        const eleEl = tps[i].getElementsByTagNameNS(ns,'AltitudeMeters')[0];
+        const tEl   = tps[i].getElementsByTagNameNS(ns,'Time')[0];
+        const hrEl  = tps[i].getElementsByTagNameNS(ns,'Value')[0];
+        pts.push({
+          lat, lon,
+          ele  : eleEl ? parseFloat(eleEl.textContent) : null,
+          time : tEl   ? new Date(tEl.textContent)     : null,
+          hr   : hrEl  ? parseInt(hrEl.textContent)    : null,
+        });
+      }
+    }
+
+    // 統計計算
+    let dist = 0;
+    for (let i = 1; i < pts.length; i++) {
+      dist += haversine(pts[i-1].lat, pts[i-1].lon, pts[i].lat, pts[i].lon);
+    }
+    const eles  = pts.map(p => p.ele).filter(e => e != null);
+    let gain = 0;
+    for (let i = 1; i < eles.length; i++) { if (eles[i] > eles[i-1]) gain += eles[i]-eles[i-1]; }
+    const times = pts.map(p => p.time).filter(t => t);
+    const durSec = times.length >= 2 ? Math.round((times[times.length-1]-times[0])/1000) : 0;
+    const avgSpd = durSec > 0 ? (dist/1000)/(durSec/3600) : 0;
+    const hrs    = pts.map(p => p.hr).filter(h => h && h > 30);
+    const avgHr  = hrs.length > 0 ? Math.round(hrs.reduce((s,h)=>s+h,0)/hrs.length) : null;
+
+    parsedPreview = { dist, gain, durSec, avgSpd, avgHr };
+
+    // プレビュー表示
+    const grid = document.getElementById('previewGrid');
+    grid.innerHTML = `
+      <div class="preview-stat"><div class="n">${(dist/1000).toFixed(2)}</div><div class="l">距離 (km)</div></div>
+      <div class="preview-stat"><div class="n">${Math.round(gain)}</div><div class="l">獲得標高 (m)</div></div>
+      <div class="preview-stat"><div class="n">${fmtDur(durSec)}</div><div class="l">走行時間</div></div>
+      <div class="preview-stat"><div class="n">${avgSpd.toFixed(1)}</div><div class="l">平均速度 (km/h)</div></div>
+      ${avgHr ? `<div class="preview-stat bryton"><div class="n">${avgHr}</div><div class="l">平均心拍 (bpm)</div></div>` : ''}
+    `;
+    document.getElementById('previewArea').style.display = 'block';
+
+  } catch(err) {
+    console.warn('プレビュー解析エラー:', err);
+  }
+}
+
+// ── アップロード実行 ──────────────────────────────────────
+async function uploadFile() {
+  if (!selectedFile) { showToast('ファイルを選んでください', 'error'); return; }
+  if (!GAS_URL || !ACCESS_KEY) { showToast('GAS URLとACCESS KEYを設定してください', 'error'); return; }
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { showToast('コース名を入力してください', 'error'); return; }
+
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 送信中...';
+  document.getElementById('progressBar').style.display = 'block';
+  setProgress(5);
+
+  try {
+    // ① Base64エンコード
+    document.getElementById('uploadStatus').textContent = 'エンコード中...';
+    const arrayBuf = await selectedFile.arrayBuffer();
+    const uint8    = new Uint8Array(arrayBuf);
+    let binary = '';
+    for (let i = 0; i < uint8.length; i += 8192) {
+      binary += String.fromCharCode.apply(null, uint8.subarray(i, i + 8192));
+    }
+    const b64 = btoa(binary);
+    setProgress(15);
+
+    // ② メタ情報を先にGASのCacheに保存
+    document.getElementById('uploadStatus').textContent = 'メタ情報を送信中...';
+    const uid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    const metaUrl = GAS_URL
+      + '?key=' + encodeURIComponent(ACCESS_KEY)
+      + '&action=save_meta'
+      + '&uid=' + uid
+      + '&name=' + encodeURIComponent(name)
+      + '&date=' + encodeURIComponent(document.getElementById('fDate').value)
+      + '&area=' + encodeURIComponent(document.getElementById('fArea').value)
+      + '&course_type=' + encodeURIComponent(document.getElementById('fType').value)
+      + '&memo=' + encodeURIComponent(document.getElementById('fMemo').value);
+    const metaRes  = await fetch(metaUrl);
+    const metaData = await metaRes.json();
+    if (metaData.status !== 'ok') throw new Error('メタ保存失敗: ' + metaData.message);
+    setProgress(20);
+
+    // ③ チャンク分割送信（1チャンク = 4000文字）
+    const CHUNK_SIZE = 4000;
+    const total      = Math.ceil(b64.length / CHUNK_SIZE);
+    document.getElementById('uploadStatus').textContent = 'チャンク送信中 (0/' + total + ')...';
+
+    for (let i = 0; i < total; i++) {
+      const chunk  = b64.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      const isLast = (i === total - 1);
+      const chunkUrl = GAS_URL
+        + '?key='       + encodeURIComponent(ACCESS_KEY)
+        + '&action=chunk'
+        + '&uid='       + uid
+        + '&idx='       + i
+        + '&total='     + total
+        + '&file_name=' + encodeURIComponent(selectedFile.name)
+        + '&chunk='     + encodeURIComponent(chunk);
+
+      const res  = await fetch(chunkUrl);
+      const data = await res.json();
+
+      if (data.status === 'error') throw new Error(data.message);
+
+      if (isLast) {
+        setProgress(100);
+        document.getElementById('uploadStatus').textContent = '';
+        if (data.status === 'ok') {
+          showToast('「' + (data.name || name) + '」を登録しました ✅', 'success');
+          resetForm();
+          setTimeout(() => loadCourseList(), 1500);
+        } else {
+          throw new Error(data.message || '登録エラー');
+        }
+        return;
+      }
+
+      const pct = 20 + Math.round(((i + 1) / total) * 78);
+      setProgress(pct);
+      document.getElementById('uploadStatus').textContent =
+        'チャンク送信中 (' + (i+1) + '/' + total + ')...';
+    }
+
+  } catch(err) {
+    showToast('送信エラー: ' + err.message, 'error');
+    document.getElementById('uploadStatus').textContent = '';
+    btn.disabled = false;
+    btn.innerHTML = '📤 アップロード登録';
+    setProgress(0);
+  }
+}
+
+// ── コース一覧を取得して表示 ──────────────────────────────
+async function loadCourseList() {
+  if (!GAS_URL || !ACCESS_KEY) return;
+  const tbody = document.getElementById('courseTableBody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="10">読み込み中...</td></tr>';
+
+  try {
+    const url = `${GAS_URL}?action=list&key=${encodeURIComponent(ACCESS_KEY)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.status !== 'ok') {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="10">エラー: ${data.message}</td></tr>`;
+      return;
+    }
+    if (!data.courses || data.courses.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">まだコースが登録されていません</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.courses.map(c => {
+      const src = c.data_source || '';
+      const srcBadge = src.includes('runkeeper') ? `<span class="badge badge-rk">Runkeeper</span>`
+                     : src.includes('bryton')    ? `<span class="badge badge-br">Bryton</span>`
+                     : `<span class="badge badge-man">手動</span>`;
+      const hrCad = (c.avg_hr || c.avg_cadence)
+        ? `${c.avg_hr ? c.avg_hr+'bpm' : '—'} / ${c.avg_cadence ? c.avg_cadence+'rpm' : '—'}`
+        : '<span style="color:var(--muted)">—</span>';
+
+      return `<tr>
+        <td style="font-weight:600; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(c.name)}</td>
+        <td style="white-space:nowrap;">${c.date || '—'}</td>
+        <td><span class="area-tag">${esc(c.area || '—')}</span></td>
+        <td style="white-space:nowrap;">${c.distance_km ? parseFloat(c.distance_km).toFixed(1)+' km' : '—'}</td>
+        <td style="white-space:nowrap;">${c.elevation_m ? Math.round(c.elevation_m)+' m' : '—'}</td>
+        <td style="white-space:nowrap;">${c.duration_sec ? fmtDur(parseInt(c.duration_sec)) : '—'}</td>
+        <td style="white-space:nowrap;">${c.avg_speed_kmh ? parseFloat(c.avg_speed_kmh).toFixed(1)+' km/h' : '—'}</td>
+        <td style="font-size:12px; white-space:nowrap;">${hrCad}</td>
+        <td>${srcBadge}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-danger btn-sm" onclick="deleteCourse('${c.id}','${esc(c.name)}')">削除</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+  } catch(err) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">読み込みエラー（GAS URLとキーを確認）</td></tr>`;
+  }
+}
+
+// ── コース削除 ────────────────────────────────────────────
+async function deleteCourse(id, name) {
+  if (!confirm(`「${name}」を削除しますか？\n（Driveのファイルは残ります）`)) return;
+  try {
+    const payload = { action: 'delete', id };
+    const url = `${GAS_URL}?key=${encodeURIComponent(ACCESS_KEY)}&data=${encodeURIComponent(JSON.stringify(payload))}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.status === 'ok') {
+      showToast(`「${name}」を削除しました`, 'success');
+      setTimeout(() => loadCourseList(), 1000);
+    } else {
+      showToast('削除エラー: ' + (data.message || '不明'), 'error');
+    }
+  } catch(err) {
+    showToast('削除エラー: ' + err.message, 'error');
+  }
+}
+
+// ── フォームリセット ──────────────────────────────────────
+function resetForm() {
+  selectedFile  = null;
+  parsedPreview = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('dropzone').classList.remove('has-file', 'drag-over');
+  document.getElementById('dropFileName').style.display = 'none';
+  document.getElementById('previewArea').style.display  = 'none';
+  document.getElementById('fName').value  = '';
+  document.getElementById('fDate').value  = '';
+  document.getElementById('fArea').value  = '';
+  document.getElementById('fType').value  = '';
+  document.getElementById('fMemo').value  = '';
+  document.getElementById('uploadBtn').disabled = true;
+  document.getElementById('uploadBtn').innerHTML = '📤 アップロード登録';
+  document.getElementById('uploadStatus').textContent = '';
+  document.getElementById('progressBar').style.display = 'none';
+  setProgress(0);
+}
+
+// ── ユーティリティ ────────────────────────────────────────
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371000, toR=Math.PI/180;
+  const dLat=(lat2-lat1)*toR, dLon=(lon2-lon1)*toR;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*toR)*Math.cos(lat2*toR)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function fmtDur(sec) {
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60);
+  return `${h}:${String(m).padStart(2,'0')}`;
+}
+function setProgress(pct) {
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
