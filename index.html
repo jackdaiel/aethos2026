@@ -188,6 +188,45 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg); colo
   .top-stats { display: none; }
   .detail-panel { width: calc(100% - 32px); }
 }
+
+/* ── ルート色ピッカー ── */
+.color-picker-row { display: flex; align-items: center; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+.color-dot {
+  width: 16px; height: 16px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: transform .15s, border-color .15s;
+  flex-shrink: 0;
+}
+.color-dot:hover { transform: scale(1.25); }
+.color-dot.selected { border-color: var(--ink); transform: scale(1.15); }
+.color-label { font-size: 10px; color: var(--muted); }
+
+/* ── 地図スタイル切り替え ── */
+.tile-switcher {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tile-btn {
+  padding: 7px 11px;
+  font-size: 11px;
+  font-family: var(--font);
+  color: var(--ink);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  transition: background .12s;
+  white-space: nowrap;
+}
+.tile-btn:last-child { border-bottom: none; }
+.tile-btn:hover { background: var(--green-l); color: var(--green-d); }
+.tile-btn.on { background: var(--green-l); color: var(--green-d); font-weight: 600; }
+
 </style>
 </head>
 <body>
@@ -273,6 +312,12 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg); colo
       <!-- マップ上ボタン -->
       <div class="map-controls">
         <button class="mc-btn" id="btnAllRoutes" onclick="toggleAllRoutes()">🗺 全コース表示</button>
+        <div class="tile-switcher">
+          <button class="tile-btn on" onclick="setTile('standard',this)">🗺 標準</button>
+          <button class="tile-btn" onclick="setTile('pale',this)">🌫 淡色</button>
+          <button class="tile-btn" onclick="setTile('topo',this)">⛰ 地形図</button>
+          <button class="tile-btn" onclick="setTile('dark',this)">🌙 ダーク</button>
+        </div>
       </div>
 
       <!-- マップローディング -->
@@ -303,6 +348,24 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg); colo
 const GAS_URL    = 'https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec';
 const ACCESS_KEY = 'aethos2026';
 
+// 選択可能なルート色パレット
+const ROUTE_COLORS = [
+  '#E24B4A', // 赤
+  '#EF9F27', // オレンジ
+  '#F5D800', // 黄
+  '#1D9E75', // 緑（デフォルト）
+  '#20B2AA', // 青緑
+  '#378ADD', // 青
+  '#9B59B6', // 紫
+  '#E91E8C', // ピンク
+  '#FF6B35', // 朱色
+  '#2E8B57', // 濃緑
+  '#1A237E', // 濃青
+  '#795548', // 茶
+  '#607D8B', // グレー
+  '#000000', // 黒
+];
+
 // エリアごとのルート色
 const AREA_COLORS = {
   '仙台市内'  : '#1D9E75',
@@ -328,10 +391,64 @@ let map;
 // ── 地図初期化 ────────────────────────────────────────────
 function initMap() {
   map = L.map('map', { zoomControl: true }).setView([38.26, 140.87], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 18,
-  }).addTo(map);
+  setTile('standard', null); // デフォルトタイル
+}
+
+// ── タイルレイヤー管理 ────────────────────────────────────
+const TILES = {
+  standard: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attr: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  },
+  pale: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attr: '© <a href="https://carto.com/">CARTO</a> © OpenStreetMap',
+  },
+  topo: {
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attr: '© <a href="https://opentopomap.org/">OpenTopoMap</a>',
+  },
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attr: '© <a href="https://carto.com/">CARTO</a> © OpenStreetMap',
+  },
+};
+let currentTile = null;
+
+function setTile(name, btn) {
+  if (currentTile) map.removeLayer(currentTile);
+  const t = TILES[name];
+  currentTile = L.tileLayer(t.url, { attribution: t.attr, maxZoom: 18 }).addTo(map);
+  // ボタンのon状態切り替え
+  document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+}
+
+// ── ルート色変更 ──────────────────────────────────────────
+async function changeRouteColor(courseId, courseName, color, dotEl) {
+  // allCoursesのroute_colorを更新
+  const course = allCourses.find(c => c.id == courseId);
+  if (course) course.route_color = color;
+
+  // 色ドットのselected状態を更新
+  const card = dotEl.closest('.cc');
+  card.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+  dotEl.classList.add('selected');
+
+  // 表示中のルートを即時更新
+  if (routeLayers[courseId]) {
+    routeLayers[courseId].setStyle({ color });
+  }
+
+  // GASに保存（route_colorはmemoフィールドに埋め込む方式 → update_meta）
+  try {
+    const url = GAS_URL
+      + '?key='    + encodeURIComponent(ACCESS_KEY)
+      + '&action=update_meta'
+      + '&id='     + encodeURIComponent(courseId)
+      + '&route_color=' + encodeURIComponent(color);
+    await fetch(url);
+  } catch(e) { console.warn('色の保存に失敗:', e); }
 }
 
 // ── コース一覧取得 ────────────────────────────────────────
@@ -392,6 +509,13 @@ function renderList() {
     const srcDot  = src.includes('bryton')
       ? `<span class="src-dot src-br"></span>`
       : `<span class="src-dot src-rk"></span>`;
+    const routeColor = c.route_color || AREA_COLORS[c.area] || '#1D9E75';
+    const colorDots  = ROUTE_COLORS.map(col =>
+      `<span class="color-dot ${col === routeColor ? 'selected' : ''}"
+        style="background:${col};"
+        onclick="event.stopPropagation();changeRouteColor('${c.id}','${esc(c.name)}','${col}',this)"
+        title="${col}"></span>`
+    ).join('');
     return `
     <div class="cc ${activeId === c.id ? 'active' : ''}"
          onclick="selectCourse('${c.id}')" data-id="${c.id}">
@@ -404,6 +528,10 @@ function renderList() {
       <div class="cc-tags">
         <span class="area-tag ${areaKey}">${esc(c.area||'—')}</span>
         ${srcDot}
+      </div>
+      <div class="color-picker-row">
+        <span class="color-label">色:</span>
+        ${colorDots}
       </div>
     </div>`;
   }).join('');
@@ -427,7 +555,7 @@ async function selectCourse(id) {
 async function showRoute(id, fitBounds) {
   const course = allCourses.find(c => c.id == id);
   if (!course) return;
-  const color = AREA_COLORS[course.area] || '#1D9E75';
+  const color = course.route_color || AREA_COLORS[course.area] || '#1D9E75';
 
   // キャッシュ済み
   if (gpxCache[id]) {
@@ -599,7 +727,7 @@ async function toggleAllRoutes() {
       } catch(e) { /* skip */ }
     }
     if (gpxCache[c.id]) {
-      const color = AREA_COLORS[c.area] || '#888';
+      const color = c.route_color || AREA_COLORS[c.area] || '#888';
       drawRoute(c.id, gpxCache[c.id], color, false);
     }
   }
