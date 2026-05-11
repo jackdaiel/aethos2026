@@ -14,11 +14,10 @@
   --blue:#378ADD;--blue-l:#E6F1FB;
   --ink:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--bg:#f5f7fa;--white:#fff;
   --radius:10px;--shadow:0 2px 8px rgba(0,0,0,.10);
-  --font:'DM Sans',system-ui,sans-serif;--sb-w:300px;
+  --font:"DM Sans",system-ui,sans-serif;--sb-w:300px;
 }
 html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--ink);font-size:16px;}
 .app{display:flex;flex-direction:column;height:100vh;}
-/* topbar */
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:1000;}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;color:var(--green-d);}
 .logo svg{width:22px;height:22px;color:var(--green);}
@@ -26,22 +25,18 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
 .ts{text-align:right;}
 .ts-n{font-size:14px;font-weight:600;color:var(--ink);}
 .ts-l{font-size:11px;color:var(--muted);}
-/* main */
 .main{display:flex;flex:1;overflow:hidden;}
-/* sidebar */
 .sidebar{width:var(--sb-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
 .sb-body{overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;flex:1;}
-/* filters */
 .filter-card{border:1px solid var(--border);border-radius:var(--radius);padding:10px;}
 .filter-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
 .tags{display:flex;flex-wrap:wrap;gap:4px;}
 .tag{font-size:12px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:var(--white);transition:all .15s;line-height:1.7;}
 .tag:hover{border-color:var(--green);color:var(--green-d);}
 .tag.on{background:var(--green-l);border-color:var(--green);color:var(--green-d);font-weight:600;}
-/* list */
 .list-header{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:2px;}
 .course-list{display:flex;flex-direction:column;gap:6px;}
-/* card */
+/* カード */
 .cc{border:1px solid var(--border);border-radius:var(--radius);padding:10px 11px;cursor:pointer;background:var(--white);transition:all .15s;}
 .cc:hover{border-color:#9FE1CB;background:#FAFFFE;}
 .cc.active{border-color:var(--green);border-width:2px;background:var(--green-l);}
@@ -53,34 +48,28 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
 .cc-meta{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--muted);}
 .cc-meta span{display:flex;align-items:center;gap:2px;}
 .cc-meta i{font-size:14px;}
-/* vis btn */
+/* 表示ボタン */
 .vis-btn{flex-shrink:0;width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .15s;color:var(--muted);}
 .vis-btn:hover{border-color:var(--green);background:var(--green-l);color:var(--green-d);}
 .vis-btn.visible{background:var(--green);border-color:var(--green-d);color:white;}
 .vis-btn.loading{opacity:.5;pointer-events:none;}
-/* card footer */
+/* フッター */
 .cc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:7px;}
 .cc-tags{display:flex;gap:4px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);}
-.area-tag{font-size:11px;padding:2px 7px;border-radius:8px;background:var(--bg);color:var(--muted);border:1px solid var(--border);}
-.area-tag.sendai{background:var(--green-l);color:var(--green-d);border-color:#9FE1CB;}
-.area-tag.kochi{background:#FAEEDA;color:#633806;border-color:#EF9F27;}
-.area-tag.shimana{background:var(--blue-l);color:#0C447C;border-color:#85B7EB;}
-.area-tag.rinko{background:#F3EEF8;color:#5B2D8E;border-color:#C4A8E8;}
-/* color dropdown */
-.color-select-btn{display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:7px;border:1px solid var(--border);background:var(--white);font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;}
-.color-select-btn:hover{border-color:var(--green);color:var(--green-d);}
-.color-swatch{width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,.15);}
+.area-tag{font-size:11px;padding:2px 7px;border-radius:8px;}
+/* 色ボタン（スウォッチのみ） */
+.color-select-btn{display:flex;align-items:center;padding:5px;border-radius:7px;border:1px solid var(--border);background:var(--white);cursor:pointer;transition:all .15s;}
+.color-select-btn:hover{border-color:var(--green);}
+.color-swatch{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.2);}
 .color-dropdown{position:fixed;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.13);padding:10px;z-index:9000;display:none;}
 .color-palette{display:grid;grid-template-columns:repeat(7,22px);gap:6px;}
 .color-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;}
 .color-dot:hover{transform:scale(1.25);}
 .color-dot.selected{border-color:var(--ink);transform:scale(1.15);}
-/* misc */
 .empty-msg,.loading-msg{text-align:center;color:var(--muted);font-size:14px;padding:24px 0;}
-/* map */
+/* マップ */
 .map-wrap{flex:1;position:relative;}
 #map{width:100%;height:100%;}
-/* controls */
 .map-controls{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;z-index:500;}
 .mc-btn{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--font);color:var(--ink);cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;gap:5px;transition:all .15s;}
 .mc-btn:hover,.mc-btn.on{background:var(--green-l);border-color:var(--green);color:var(--green-d);font-weight:600;}
@@ -88,12 +77,11 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
 .tile-btn{padding:7px 12px;font-size:12px;font-family:var(--font);color:var(--ink);cursor:pointer;background:none;border:none;border-bottom:1px solid var(--border);text-align:left;transition:background .12s;white-space:nowrap;}
 .tile-btn:last-child{border-bottom:none;}
 .tile-btn:hover,.tile-btn.on{background:var(--green-l);color:var(--green-d);font-weight:600;}
-/* loading */
 @keyframes spin{to{transform:rotate(360deg);}}
 .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;}
 .map-loading{position:absolute;inset:0;background:rgba(255,255,255,.65);display:none;align-items:center;justify-content:center;z-index:600;font-size:14px;color:var(--muted);gap:8px;}
 .map-loading.show{display:flex;}
-/* elev panel */
+/* 高低図パネル */
 .elev-panel{position:absolute;bottom:16px;right:16px;width:360px;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.13);z-index:500;display:none;overflow:hidden;}
 .elev-panel.show{display:block;}
 .elev-panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid var(--border);}
@@ -109,15 +97,16 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
 .elev-stat.br .elev-stat-n{color:#0C447C;}
 .elev-chart-wrap{padding:10px 12px 4px;background:var(--bg);position:relative;user-select:none;}
 #epChart{display:block;width:100%;cursor:crosshair;}
-.elev-cursor{position:absolute;top:10px;width:1px;background:rgba(0,0,0,.3);pointer-events:none;display:none;}
-.elev-cursor-dot{position:absolute;width:9px;height:9px;border-radius:50%;border:2px solid white;margin-left:-4.5px;pointer-events:none;display:none;box-shadow:0 1px 4px rgba(0,0,0,.35);}
-.elev-tooltip{position:absolute;background:rgba(26,26,26,.85);color:white;font-size:11px;padding:3px 7px;border-radius:5px;pointer-events:none;display:none;white-space:nowrap;transform:translateX(-50%);top:8px;z-index:10;}
 .elev-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:3px;padding-bottom:6px;}
 .elev-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid var(--border);}
 .elev-footer-date{font-size:12px;color:var(--muted);}
 .elev-footer-src{font-size:12px;padding:2px 8px;border-radius:8px;font-weight:600;}
 .src-rk-badge{background:var(--green-l);color:var(--green-d);border:1px solid #9FE1CB;}
 .src-br-badge{background:var(--blue-l);color:#0C447C;border:1px solid #85B7EB;}
+/* カーソル要素 */
+#epCursor{position:absolute;width:1px;background:rgba(0,0,0,.3);pointer-events:none;display:none;}
+#epCursorDot{position:absolute;width:10px;height:10px;border-radius:50%;border:2px solid white;margin-left:-5px;margin-top:-5px;pointer-events:none;display:none;box-shadow:0 1px 4px rgba(0,0,0,.4);}
+#epTooltip{position:absolute;background:rgba(26,26,26,.88);color:white;font-size:11px;padding:3px 8px;border-radius:5px;pointer-events:none;display:none;white-space:nowrap;transform:translateX(-50%);z-index:10;}
 @media(max-width:700px){
   :root{--sb-w:100%;}
   .main{flex-direction:column;}
@@ -138,9 +127,9 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
       My Cycling Logs
     </div>
     <div class="top-stats">
-      <div class="ts"><div class="ts-n" id="statCount">—</div><div class="ts-l">コース数</div></div>
-      <div class="ts"><div class="ts-n" id="statDist">—</div><div class="ts-l">総距離</div></div>
-      <div class="ts"><div class="ts-n" id="statElev">—</div><div class="ts-l">総獲得標高</div></div>
+      <div class="ts"><div class="ts-n" id="statCount">-</div><div class="ts-l">コース数</div></div>
+      <div class="ts"><div class="ts-n" id="statDist">-</div><div class="ts-l">総距離</div></div>
+      <div class="ts"><div class="ts-n" id="statElev">-</div><div class="ts-l">総獲得標高</div></div>
     </div>
   </header>
   <div class="main">
@@ -185,23 +174,23 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
           <button class="tile-btn" onclick="setTile('dark',this)">🌙 ダーク</button>
         </div>
       </div>
-      <div class="map-loading" id="mapLoading"><div class="spinner"></div>ルートを読み込み中...</div>
+      <div class="map-loading" id="mapLoading"><div class="spinner"></div>読み込み中...</div>
       <div class="elev-panel" id="elevPanel">
         <div class="elev-panel-header">
-          <div class="elev-panel-title" id="epTitle">—</div>
-          <button class="elev-panel-close" onclick="closeDetail()">✕</button>
+          <div class="elev-panel-title" id="epTitle">-</div>
+          <button class="elev-panel-close" onclick="closeDetail()">x</button>
         </div>
         <div class="elev-stats" id="epStats"></div>
-        <div class="elev-chart-wrap" id="epChartWrap">
+        <div class="elev-chart-wrap" id="epWrap">
           <svg id="epChart" height="90" viewBox="0 0 332 90" preserveAspectRatio="none"></svg>
-          <div class="elev-cursor" id="epCursor"></div>
-          <div class="elev-cursor-dot" id="epCursorDot"></div>
-          <div class="elev-tooltip" id="epTooltip"></div>
-          <div class="elev-axis"><span id="epEleMin">—m</span><span>標高プロファイル</span><span id="epEleMax">—m</span></div>
+          <div id="epCursor"></div>
+          <div id="epCursorDot"></div>
+          <div id="epTooltip"></div>
+          <div class="elev-axis"><span id="epEleMin">-m</span><span>標高プロファイル</span><span id="epEleMax">-m</span></div>
         </div>
         <div class="elev-footer">
-          <span class="elev-footer-date" id="epDate">—</span>
-          <span class="elev-footer-src" id="epSrc">—</span>
+          <span class="elev-footer-date" id="epDate">-</span>
+          <span class="elev-footer-src" id="epSrc">-</span>
         </div>
       </div>
     </div>
@@ -210,323 +199,466 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
 <div class="color-dropdown" id="colorDropdown"><div class="color-palette" id="colorPalette"></div></div>
 
 <script>
-const GAS_URL    = 'https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec';
-const ACCESS_KEY = 'aethos2026';
-const AREA_COLORS = {'仙台市内':'#1D9E75','秋保・定義':'#2E8B57','作並':'#3CB371','七ツ森':'#20B2AA','泉・富谷':'#66CDAA','高知':'#EF9F27','しまなみ':'#378ADD','輪行先':'#9B59B6','その他':'#888888'};
-const ROUTE_COLORS = ['#E24B4A','#EF9F27','#F5C518','#1D9E75','#20B2AA','#378ADD','#9B59B6','#E91E8C','#FF6B35','#2E8B57','#1A237E','#795548','#607D8B','#000000'];
-const TILES = {
-  voyager :{url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',attr:'© CARTO © OpenStreetMap'},
-  standard:{url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',attr:'© OpenStreetMap'},
-  pale    :{url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',attr:'© CARTO © OpenStreetMap'},
-  topo    :{url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',attr:'© OpenTopoMap'},
-  dark    :{url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',attr:'© CARTO © OpenStreetMap'},
+var GAS_URL    = 'https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec';
+var ACCESS_KEY = 'aethos2026';
+
+var AREA_COLORS = {
+  '仙9ツ森':'# 31c71','秋保・定義':'#22E8B57',
 };
 
-let allCourses=[],courseFilter={area:'',dist_min:'',dist_max:'',type:''};
-let routeLayers={},activeId=null,visibleCourses=new Set(),gpxCache={};
-let map,currentTile,elevMapMarker=null,colorDropdownTargetId=null;
+// エリア色テーブル（SSのエリア名に依存しない汎用パレット）
+var AREA_COLOR_PALETTE = [
+  '#1D9E75','#2E8B57','#3CB371','#20B2AA','#378ADD',
+  '#9B59B6','#EF9F27','#E24B4A','#607D8B','#795548',
+];
 
-/* ── 地図 ── */
-function initMap(){
-  map=L.map('map',{zoomControl:true}).setView([38.26,140.87],11);
-  setTile('voyager',null);
-}
-function setTile(name,btn){
-  if(currentTile)map.removeLayer(currentTile);
-  const t=TILES[name];
-  currentTile=L.tileLayer(t.url,{attribution:t.attr,maxZoom:18}).addTo(map);
-  document.querySelectorAll('.tile-btn').forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');
+var ROUTE_COLORS = [
+  '#E24B4A','#EF9F27','#F5C518','#1D9E75','#20B2AA',
+  '#378ADD','#9B59B6','#E91E8C','#FF6B35','#2E8B57',
+  '#1A237E','#795548','#607D8B','#000000',
+];
+
+var TILES = {
+  voyager :{url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',attr:'(c) CARTO (c) OSM'},
+  standard:{url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',attr:'(c) OpenStreetMap'},
+  pale    :{url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',attr:'(c) CARTO (c) OSM'},
+  topo    :{url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',attr:'(c) OpenTopoMap'},
+  dark    :{url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',attr:'(c) CARTO (c) OSM'},
+};
+
+var allCourses = [];
+var courseFilter = {area:'',dist_min:'',dist_max:'',type:''};
+var routeLayers = {};
+var activeId = null;
+var visibleCourses = new Set();
+var gpxCache = {};
+var map, currentTile, elevMapMarker = null;
+var areaColorMap = {};  // { エリア名: 色コード } 動的に構築
+
+function getAreaColor(area) {
+  if (!area) return '#888888';
+  if (!areaColorMap[area]) {
+    var keys = Object.keys(areaColorMap);
+    areaColorMap[area] = AREA_COLOR_PALETTE[keys.length % AREA_COLOR_PALETTE.length];
+  }
+  return areaColorMap[area];
 }
 
-/* ── タグ読み込み ── */
-async function loadTags(){
-  try{
-    const data=await(await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=tags')).json();
-    if(data.status!=='ok')return;
-    const af=document.getElementById('areaFilter');
-    data.areas.forEach(a=>{const s=document.createElement('span');s.className='tag';s.dataset.val=a;s.textContent=a;af.appendChild(s);});
-    const tf=document.getElementById('typeFilter');
-    data.types.forEach(t=>{const s=document.createElement('span');s.className='tag';s.dataset.val=t;s.textContent=t;tf.appendChild(s);});
-  }catch(e){console.warn('tag load error',e);}
+// ── 地図 ──
+function initMap() {
+  map = L.map('map', {zoomControl:true}).setView([38.26, 140.87], 11);
+  setTile('voyager', null);
+}
+function setTile(name, btn) {
+  if (currentTile) map.removeLayer(currentTile);
+  var t = TILES[name];
+  currentTile = L.tileLayer(t.url, {attribution:t.attr, maxZoom:18}).addTo(map);
+  document.querySelectorAll('.tile-btn').forEach(function(b){b.classList.remove('on');});
+  if (btn) btn.classList.add('on');
 }
 
-/* ── コース一覧 ── */
-async function loadCourses(){
-  try{
-    const data=await(await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=list')).json();
-    if(data.status!=='ok')return;
-    allCourses=data.courses;updateStats();renderList();
-  }catch(e){document.getElementById('courseList').innerHTML='<div class="empty-msg">読み込みエラー</div>';}
+// ── タグ読み込み ──
+async function loadTags() {
+  try {
+    var data = await (await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=tags')).json();
+    if (data.status !== 'ok') return;
+    var af = document.getElementById('areaFilter');
+    data.areas.forEach(function(a) {
+      var s = document.createElement('span');
+      s.className = 'tag'; s.dataset.val = a; s.textContent = a;
+      af.appendChild(s);
+      getAreaColor(a); // 色を事前割り当て
+    });
+    var tf = document.getElementById('typeFilter');
+    data.types.forEach(function(t) {
+      var s = document.createElement('span');
+      s.className = 'tag'; s.dataset.val = t; s.textContent = t;
+      tf.appendChild(s);
+    });
+  } catch(e) { console.warn('tag load error', e); }
 }
-function updateStats(){
-  const cs=getFiltered();
-  document.getElementById('statCount').textContent=cs.length+' コース';
-  document.getElementById('statDist').textContent=cs.reduce((s,c)=>s+(parseFloat(c.distance_km)||0),0).toFixed(0)+' km';
-  document.getElementById('statElev').textContent=cs.reduce((s,c)=>s+(parseFloat(c.elevation_m)||0),0).toFixed(0)+' m';
+
+// ── コース一覧 ──
+async function loadCourses() {
+  try {
+    var data = await (await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=list')).json();
+    if (data.status !== 'ok') return;
+    allCourses = data.courses;
+    updateStats(); renderList();
+  } catch(e) {
+    document.getElementById('courseList').innerHTML = '<div class="empty-msg">読み込みエラー</div>';
+  }
 }
-function getFiltered(){
-  return allCourses.filter(c=>{
-    const d=parseFloat(c.distance_km)||0;
-    if(courseFilter.area&&c.area!==courseFilter.area)return false;
-    if(courseFilter.type&&c.course_type!==courseFilter.type)return false;
-    if(courseFilter.dist_min!==''&&d<parseFloat(courseFilter.dist_min))return false;
-    if(courseFilter.dist_max!==''&&d>=parseFloat(courseFilter.dist_max))return false;
+function updateStats() {
+  var cs = getFiltered();
+  document.getElementById('statCount').textContent = cs.length + ' コース';
+  document.getElementById('statDist').textContent  = cs.reduce(function(s,c){return s+(parseFloat(c.distance_km)||0);},0).toFixed(0) + ' km';
+  document.getElementById('statElev').textContent  = cs.reduce(function(s,c){return s+(parseFloat(c.elevation_m)||0);},0).toFixed(0) + ' m';
+}
+function getFiltered() {
+  return allCourses.filter(function(c) {
+    var d = parseFloat(c.distance_km) || 0;
+    if (courseFilter.area && c.area !== courseFilter.area) return false;
+    if (courseFilter.type && c.course_type !== courseFilter.type) return false;
+    if (courseFilter.dist_min !== '' && d < parseFloat(courseFilter.dist_min)) return false;
+    if (courseFilter.dist_max !== '' && d >= parseFloat(courseFilter.dist_max)) return false;
     return true;
   });
 }
 
-/* ── レンダリング ── */
-function renderList(){
-  const courses=getFiltered();
-  document.getElementById('listHeader').textContent='コース一覧（'+courses.length+'件）';
+// ── レンダリング ──
+function renderList() {
+  var courses = getFiltered();
+  document.getElementById('listHeader').textContent = 'コース一覧(' + courses.length + '件)';
   updateStats();
-  if(!courses.length){document.getElementById('courseList').innerHTML='<div class="empty-msg">該当なし</div>';return;}
-  document.getElementById('courseList').innerHTML=courses.map(c=>{
-    const isVis=visibleCourses.has(c.id);
-    const color=c.route_color||AREA_COLORS[c.area]||'#1D9E75';
-    const aKey=getAreaKey(c.area);
-    const isBr=(c.data_source||'').includes('bryton');
-    const dot='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(isBr?'#378ADD':'#1D9E75')+';margin-right:3px;vertical-align:middle;"></span>';
-    return '<div class="cc'+(activeId===c.id?' active':'')+(isVis?' map-visible':'')+'" data-id="'+c.id+'" onclick="selectCourse(\''+c.id+'\')">'+
-      '<div class="cc-header">'+
-        '<div class="cc-color-bar" style="background:'+color+';"></div>'+
-        '<div class="cc-main">'+
-          '<div class="cc-name">'+esc(c.name)+'</div>'+
-          '<div class="cc-meta">'+
-            '<span><i class="ti ti-route"></i>'+parseFloat(c.distance_km||0).toFixed(1)+' km</span>'+
-            '<span><i class="ti ti-trending-up"></i>'+Math.round(c.elevation_m||0)+' m</span>'+
-            '<span><i class="ti ti-clock"></i>'+fmtDur(parseInt(c.duration_sec||0))+'</span>'+
-            '<span><i class="ti ti-gauge"></i>'+parseFloat(c.avg_speed_kmh||0).toFixed(1)+' km/h</span>'+
-          '</div>'+
-        '</div>'+
-        '<button class="vis-btn'+(isVis?' visible':'')+'" onclick="event.stopPropagation();toggleRouteVisible(\''+c.id+'\',this)" title="'+(isVis?'非表示':'表示')+'">'+
-          '<i class="ti '+(isVis?'ti-map-pin':'ti-map-pin-off')+'"></i>'+
-        '</button>'+
-      '</div>'+
-      '<div class="cc-footer">'+
-        '<div class="cc-tags"><span class="area-tag '+aKey+'">'+esc(c.area||'—')+'</span>'+dot+(isBr?'Bryton':'Runkeeper')+'</div>'+
-        '<button class="color-select-btn" onclick="event.stopPropagation();openColorDropdown(\''+c.id+'\',this)">'+
-          '<span class="color-swatch" style="background:'+color+';"></span>色を変更'+
-        '</button>'+
-      '</div>'+
-    '</div>';
-  }).join('');
+  if (!courses.length) {
+    document.getElementById('courseList').innerHTML = '<div class="empty-msg">該当なし</div>';
+    return;
+  }
+  var html = '';
+  courses.forEach(function(c) {
+    var sid = String(c.id);
+    var isVis = visibleCourses.has(sid);
+    var color = c.route_color || getAreaColor(c.area);
+    var isBr  = (c.data_source || '').indexOf('bryton') >= 0;
+    var bc    = getAreaColor(c.area);
+    var areaTag = '<span class="area-tag" style="background:' + bc + '22;color:' + bc + ';border:1px solid ' + bc + '88;">' + esc(c.area || '-') + '</span>';
+    var srcDot  = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + (isBr ? '#378ADD' : '#1D9E75') + ';margin-right:3px;vertical-align:middle;"></span>';
+    var visClass = isVis ? ' visible' : '';
+    var visIcon  = isVis ? 'ti-map-pin' : 'ti-map-pin-off';
+    var visTitle = isVis ? '地図から非表示' : '地図に表示';
+    html += '<div class="cc' + (activeId===sid?' active':'') + (isVis?' map-visible':'') + '" data-id="' + sid + '" onclick="selectCourse('' + sid + '')">';
+    html += '<div class="cc-header">';
+    html += '<div class="cc-color-bar" style="background:' + color + ';"></div>';
+    html += '<div class="cc-main">';
+    html += '<div class="cc-name">' + esc(c.name) + '</div>';
+    html += '<div class="cc-meta">';
+    html += '<span><i class="ti ti-route"></i>' + parseFloat(c.distance_km||0).toFixed(1) + ' km</span>';
+    html += '<span><i class="ti ti-trending-up"></i>' + Math.round(c.elevation_m||0) + ' m</span>';
+    html += '<span><i class="ti ti-clock"></i>' + fmtDur(parseInt(c.duration_sec||0)) + '</span>';
+    html += '<span><i class="ti ti-gauge"></i>' + parseFloat(c.avg_speed_kmh||0).toFixed(1) + ' km/h</span>';
+    html += '</div></div>';
+    html += '<button class="vis-btn' + visClass + '" onclick="event.stopPropagation();toggleRouteVisible('' + sid + '',this)" title="' + visTitle + '">';
+    html += '<i class="ti ' + visIcon + '"></i></button>';
+    html += '</div>';
+    html += '<div class="cc-footer">';
+    html += '<div class="cc-tags">' + areaTag + srcDot + (isBr?'Bryton':'Runkeeper') + '</div>';
+    html += '<button class="color-select-btn" onclick="event.stopPropagation();openColorDropdown('' + sid + '',this)">';
+    html += '<span class="color-swatch" style="background:' + color + ';"></span></button>';
+    html += '</div></div>';
+  });
+  document.getElementById('courseList').innerHTML = html;
 }
 
-/* ── コース操作 ── */
-async function selectCourse(id){
-  activeId=id;closeColorDropdown();
-  if(!visibleCourses.has(id))visibleCourses.add(id);
-  renderList();await showRoute(id,true);
+// ── コース操作 ──
+async function selectCourse(id) {
+  var sid = String(id);
+  activeId = sid;
+  if (!visibleCourses.has(sid)) visibleCourses.add(sid);
+  renderList();
+  await showRoute(sid, true);
 }
-async function toggleRouteVisible(id,btn){
-  if(visibleCourses.has(id)){
-    visibleCourses.delete(id);
-    if(routeLayers[id]){map.removeLayer(routeLayers[id]);delete routeLayers[id];}
-    if(activeId===id){closeDetail();activeId=null;}
-  }else{
-    visibleCourses.add(id);btn.classList.add('loading');
-    await showRoute(id,false);btn.classList.remove('loading');
-    const all=Object.values(routeLayers);
-    if(all.length)map.fitBounds(L.featureGroup(all).getBounds(),{padding:[40,40]});
+async function toggleRouteVisible(id, btn) {
+  var sid = String(id);
+  if (visibleCourses.has(sid)) {
+    visibleCourses.delete(sid);
+    if (routeLayers[sid]) { map.removeLayer(routeLayers[sid]); delete routeLayers[sid]; }
+    if (activeId === sid) { closeDetail(); activeId = null; }
+  } else {
+    visibleCourses.add(sid);
+    btn.classList.add('loading');
+    await showRoute(sid, false);
+    btn.classList.remove('loading');
+    var all = Object.values(routeLayers);
+    if (all.length) map.fitBounds(L.featureGroup(all).getBounds(), {padding:[40,40]});
   }
   renderList();
 }
-async function showRoute(id,fitBounds){
-  const course=allCourses.find(c=>c.id==id);if(!course)return;
-  const color=course.route_color||AREA_COLORS[course.area]||'#1D9E75';
-  if(gpxCache[id]){drawRoute(id,gpxCache[id],color,fitBounds);showDetailPanel(course,gpxCache[id]);return;}
-  document.getElementById('mapLoading').classList.add('show');
-  try{
-    const data=await(await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=gpx&id='+id)).json();
-    if(data.status!=='ok')throw new Error(data.message);
-    const pts=parseGpxContent(data.content);gpxCache[id]=pts;
-    drawRoute(id,pts,color,fitBounds);showDetailPanel(course,pts);
-  }catch(e){console.error(e);}
-  finally{document.getElementById('mapLoading').classList.remove('show');}
-}
-function parseGpxContent(content){
-  const doc=new DOMParser().parseFromString(content,'text/xml');
-  const ns='http://www.topografix.com/GPX/1/1';
-  let pts=Array.from(doc.getElementsByTagNameNS(ns,'trkpt'));
-  if(!pts.length)pts=Array.from(doc.getElementsByTagName('trkpt'));
-  return pts.map(pt=>{
-    const lat=parseFloat(pt.getAttribute('lat')),lon=parseFloat(pt.getAttribute('lon'));
-    const eEl=pt.getElementsByTagNameNS(ns,'ele')[0]||pt.getElementsByTagName('ele')[0];
-    return[lat,lon,eEl?parseFloat(eEl.textContent):null];
-  }).filter(p=>!isNaN(p[0])&&!isNaN(p[1]));
-}
-function drawRoute(id,pts,color,fitBounds){
-  if(routeLayers[id])map.removeLayer(routeLayers[id]);
-  const ll=pts.map(p=>[p[0],p[1]]);
-  const line=L.polyline(ll,{color,weight:activeId==id?4.5:3,opacity:activeId==id?0.92:0.55}).addTo(map);
-  if(ll.length){
-    L.circleMarker(ll[0],{radius:7,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1}).addTo(map).bindTooltip('スタート');
-    if(ll.length>1)L.circleMarker(ll[ll.length-1],{radius:6,fillColor:'#E24B4A',color:'#fff',weight:2.5,fillOpacity:1}).addTo(map).bindTooltip('ゴール');
+async function showRoute(id, fitBounds) {
+  var sid = String(id);
+  var course = allCourses.find(function(c){return String(c.id)===sid;});
+  if (!course) return;
+  var color = course.route_color || getAreaColor(course.area);
+  if (gpxCache[sid]) {
+    drawRoute(sid, gpxCache[sid], color, fitBounds);
+    showDetailPanel(course, gpxCache[sid]);
+    return;
   }
-  routeLayers[id]=line;
-  if(fitBounds&&ll.length)map.fitBounds(line.getBounds(),{padding:[40,40]});
+  document.getElementById('mapLoading').classList.add('show');
+  try {
+    var data = await (await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=gpx&id=' + sid)).json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    var pts = parseGpx(data.content);
+    gpxCache[sid] = pts;
+    drawRoute(sid, pts, color, fitBounds);
+    showDetailPanel(course, pts);
+  } catch(e) { console.error(e); }
+  finally { document.getElementById('mapLoading').classList.remove('show'); }
+}
+function parseGpx(content) {
+  var doc = new DOMParser().parseFromString(content, 'text/xml');
+  var ns = 'http://www.topografix.com/GPX/1/1';
+  var pts = Array.from(doc.getElementsByTagNameNS(ns,'trkpt'));
+  if (!pts.length) pts = Array.from(doc.getElementsByTagName('trkpt'));
+  return pts.map(function(pt) {
+    var lat = parseFloat(pt.getAttribute('lat'));
+    var lon = parseFloat(pt.getAttribute('lon'));
+    var eEl = pt.getElementsByTagNameNS(ns,'ele')[0] || pt.getElementsByTagName('ele')[0];
+    return [lat, lon, eEl ? parseFloat(eEl.textContent) : null];
+  }).filter(function(p){return !isNaN(p[0])&&!isNaN(p[1]);});
+}
+function drawRoute(id, pts, color, fitBounds) {
+  var sid = String(id);
+  if (routeLayers[sid]) map.removeLayer(routeLayers[sid]);
+  var ll = pts.map(function(p){return [p[0],p[1]];});
+  var isActive = activeId === sid;
+  var line = L.polyline(ll, {color:color, weight:isActive?4.5:3, opacity:isActive?0.92:0.55}).addTo(map);
+  if (ll.length) {
+    L.circleMarker(ll[0],{radius:7,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1}).addTo(map).bindTooltip('START');
+    if (ll.length>1) L.circleMarker(ll[ll.length-1],{radius:6,fillColor:'#E24B4A',color:'#fff',weight:2.5,fillOpacity:1}).addTo(map).bindTooltip('GOAL');
+  }
+  routeLayers[sid] = line;
+  if (fitBounds && ll.length) map.fitBounds(line.getBounds(), {padding:[40,40]});
 }
 
-/* ── 高低図パネル ── */
-function showDetailPanel(course,pts){
-  const color=course.route_color||AREA_COLORS[course.area]||'#1D9E75';
-  const isBr=(course.data_source||'').includes('bryton');
-  const hasHr=parseInt(course.avg_hr||0)>0;
-  const hasCad=parseInt(course.avg_cadence||0)>0;
-  const hasMaxSpd=parseFloat(course.max_speed_kmh||0)>0;
-  document.getElementById('epTitle').textContent=course.name||'—';
-  const stats=[
-    {n:parseFloat(course.distance_km||0).toFixed(1)+' km',l:'距離'},
-    {n:Math.round(course.elevation_m||0)+' m',l:'獲得標高'},
-    {n:fmtDur(parseInt(course.duration_sec||0)),l:'走行時間'},
-    {n:parseFloat(course.avg_speed_kmh||0).toFixed(1)+' km/h',l:'Avg速度'},
-  ];
-  if(hasMaxSpd)stats.push({n:parseFloat(course.max_speed_kmh).toFixed(1)+' km/h',l:'MAX速度'});
-  if(hasHr)stats.push({n:course.avg_hr+' bpm',l:'平均心拍',br:true});
-  if(hasCad)stats.push({n:course.avg_cadence+' rpm',l:'Avgケイデンス',br:true});
-  const cols=Math.min(stats.length,4);
-  const epS=document.getElementById('epStats');
-  epS.style.gridTemplateColumns='repeat('+cols+',1fr)';
-  epS.innerHTML=stats.map(s=>'<div class="elev-stat'+(s.br?' br':'')+'"><div class="elev-stat-n">'+s.n+'</div><div class="elev-stat-l">'+s.l+'</div></div>').join('');
+// ── 高低図パネル ──
+function showDetailPanel(course, pts) {
+  var color  = course.route_color || getAreaColor(course.area);
+  var isBr   = (course.data_source||'').indexOf('bryton') >= 0;
+  var hasHr  = parseInt(course.avg_hr||0) > 0;
+  var hasCad = parseInt(course.avg_cadence||0) > 0;
+  var hasMax = parseFloat(course.max_speed_kmh||0) > 0;
+  document.getElementById('epTitle').textContent = course.name || '-';
 
-  const eles=pts.map(p=>p[2]).filter(e=>e!==null&&!isNaN(e));
-  if(eles.length>1){
-    const eMin=Math.min(...eles),eMax=Math.max(...eles),eRange=eMax-eMin||1;
-    const step=Math.max(1,Math.floor(pts.length/300));
-    const sampled=pts.filter((_,i)=>i%step===0);
-    const W=332,H=90,PY=8;
-    const points=sampled.map((p,i)=>{
-      const e=p[2]!==null&&!isNaN(p[2])?p[2]:eMin;
-      const x=(i/(sampled.length-1))*W;
-      const y=H-PY-((e-eMin)/eRange)*(H-PY*2);
+  var stats = [
+    {n:parseFloat(course.distance_km||0).toFixed(1)+' km', l:'距離'},
+    {n:Math.round(course.elevation_m||0)+' m',             l:'獲得標高'},
+    {n:fmtDur(parseInt(course.duration_sec||0)),            l:'走行時間'},
+    {n:parseFloat(course.avg_speed_kmh||0).toFixed(1)+' km/h', l:'Avg速度'},
+  ];
+  if (hasMax) stats.push({n:parseFloat(course.max_speed_kmh).toFixed(1)+' km/h', l:'MAX速度'});
+  if (hasHr)  stats.push({n:course.avg_hr+' bpm',       l:'平均心拍', br:true});
+  if (hasCad) stats.push({n:course.avg_cadence+' rpm',  l:'Avgケイデ', br:true});
+
+  var cols = Math.min(stats.length, 4);
+  var epS = document.getElementById('epStats');
+  epS.style.gridTemplateColumns = 'repeat('+cols+',1fr)';
+  epS.innerHTML = stats.map(function(s){
+    return '<div class="elev-stat'+(s.br?' br':'')+'"><div class="elev-stat-n">'+s.n+'</div><div class="elev-stat-l">'+s.l+'</div></div>';
+  }).join('');
+
+  var eles = pts.map(function(p){return p[2];}).filter(function(e){return e!==null&&!isNaN(e);});
+  if (eles.length > 1) {
+    var eMin = Math.min.apply(null,eles), eMax = Math.max.apply(null,eles), eRange = eMax-eMin||1;
+    var step = Math.max(1, Math.floor(pts.length/300));
+    var sampled = pts.filter(function(_,i){return i%step===0;});
+    var W=332, H=90, PY=8;
+
+    var points = sampled.map(function(p,i){
+      var e = (p[2]!==null&&!isNaN(p[2])) ? p[2] : eMin;
+      var x = (i/(sampled.length-1))*W;
+      var y = H - PY - ((e-eMin)/eRange)*(H-PY*2);
       return x.toFixed(1)+','+y.toFixed(1);
     });
-    const poly=points.join(' ');
-    const fill='0,'+H+' '+poly+' '+W+','+H;
-    const grids=[0.25,0.5,0.75].map(r=>{const y=(H-PY)-r*(H-PY*2);return'<line x1="0" y1="'+y.toFixed(1)+'" x2="'+W+'" y2="'+y.toFixed(1)+'" stroke="#e5e7eb" stroke-width="1"/>';}).join('');
-    document.getElementById('epChart').innerHTML=
-      '<defs><linearGradient id="epG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+color+'" stop-opacity="0.4"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0.04"/></linearGradient></defs>'+
+    var poly = points.join(' ');
+    var fill = '0,'+H+' '+poly+' '+W+','+H;
+    var grids = [0.25,0.5,0.75].map(function(r){
+      var y = (H-PY)-r*(H-PY*2);
+      return '<line x1="0" y1="'+y.toFixed(1)+'" x2="'+W+'" y2="'+y.toFixed(1)+'" stroke="#e5e7eb" stroke-width="1"/>';
+    }).join('');
+
+    document.getElementById('epChart').innerHTML =
+      '<defs><linearGradient id="epG" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="'+color+'" stop-opacity="0.4"/>'+
+      '<stop offset="100%" stop-color="'+color+'" stop-opacity="0.04"/></linearGradient></defs>'+
       '<rect width="'+W+'" height="'+H+'" fill="#f8fafb"/>'+grids+
       '<polygon points="'+fill+'" fill="url(#epG)"/>'+
       '<polyline points="'+poly+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    document.getElementById('epEleMin').textContent=Math.round(eMin)+'m';
-    document.getElementById('epEleMax').textContent=Math.round(eMax)+'m';
-    setupElevCursor(sampled,eMin,eMax,W,H,PY,color);
+
+    document.getElementById('epEleMin').textContent = Math.round(eMin)+'m';
+    document.getElementById('epEleMax').textContent = Math.round(eMax)+'m';
+    setupCursor(sampled, eMin, eMax, W, H, PY, color);
   }
-  document.getElementById('epDate').textContent=course.date||'—';
-  const srcEl=document.getElementById('epSrc');
-  srcEl.textContent=isBr?'Bryton':'Runkeeper';
-  srcEl.className='elev-footer-src '+(isBr?'src-br-badge':'src-rk-badge');
+
+  document.getElementById('epDate').textContent = course.date || '-';
+  var srcEl = document.getElementById('epSrc');
+  srcEl.textContent = isBr ? 'Bryton' : 'Runkeeper';
+  srcEl.className   = 'elev-footer-src ' + (isBr ? 'src-br-badge' : 'src-rk-badge');
   document.getElementById('elevPanel').classList.add('show');
 }
 
-/* ── 高低図カーソル＋マップ同期 ── */
-function setupElevCursor(sampled,eMin,eMax,W,H,PY,color){
-  const svg=document.getElementById('epChart');
-  const cursor=document.getElementById('epCursor');
-  const dot=document.getElementById('epCursorDot');
-  const tip=document.getElementById('epTooltip');
-  const wrap=document.getElementById('epChartWrap');
-  if(elevMapMarker){map.removeLayer(elevMapMarker);elevMapMarker=null;}
-  const eRange=eMax-eMin||1;
+// ── 高低図カーソル＋マップ同期 ──
+function setupCursor(sampled, eMin, eMax, W, H, PY, color) {
+  var svg    = document.getElementById('epChart');
+  var cursor = document.getElementById('epCursor');
+  var dot    = document.getElementById('epCursorDot');
+  var tip    = document.getElementById('epTooltip');
+  var wrap   = document.getElementById('epWrap');
+  var eRange = eMax - eMin || 1;
+  if (elevMapMarker) { map.removeLayer(elevMapMarker); elevMapMarker = null; }
 
-  svg.onmousemove=function(e){
-    const rect=svg.getBoundingClientRect();
-    const x=e.clientX-rect.left;
-    const pct=Math.max(0,Math.min(1,x/rect.width));
-    const idx=Math.round(pct*(sampled.length-1));
-    const pt=sampled[idx];if(!pt)return;
-    const ele=pt[2]!==null&&!isNaN(pt[2])?pt[2]:eMin;
-    const svgYpct=((H-PY-((ele-eMin)/eRange)*(H-PY*2))/H*100).toFixed(1)+'%';
-    const pctStr=(pct*100).toFixed(1)+'%';
-    cursor.style.cssText='display:block;left:'+pctStr+';top:10px;bottom:0;position:absolute;width:1px;background:rgba(0,0,0,.3);pointer-events:none;';
-    dot.style.cssText='display:block;left:'+pctStr+';top:'+svgYpct+';background:'+color+';position:absolute;width:9px;height:9px;border-radius:50%;border:2px solid white;margin-left:-4.5px;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.35);';
-    tip.style.cssText='display:block;left:'+pctStr+';top:6px;position:absolute;background:rgba(26,26,26,.85);color:white;font-size:11px;padding:3px 7px;border-radius:5px;pointer-events:none;white-space:nowrap;transform:translateX(-50%);z-index:10;';
-    tip.textContent=Math.round(ele)+'m';
-    if(pt[0]&&pt[1]){
-      if(!elevMapMarker){elevMapMarker=L.circleMarker([pt[0],pt[1]],{radius:8,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1,zIndexOffset:1000}).addTo(map);}
-      else{elevMapMarker.setLatLng([pt[0],pt[1]]);elevMapMarker.setStyle({fillColor:color});}
+  svg.onmousemove = function(e) {
+    // SVGのBoundingClientRect（実際のDOM上のサイズ）
+    var svgR  = svg.getBoundingClientRect();
+    var wrapR = wrap.getBoundingClientRect();
+
+    // X方向: SVG上のカーソル位置(0〜1)
+    var pct = Math.max(0, Math.min(1, (e.clientX - svgR.left) / svgR.width));
+    var idx = Math.round(pct * (sampled.length - 1));
+    var pt  = sampled[idx];
+    if (!pt) return;
+
+    var ele    = (pt[2] !== null && !isNaN(pt[2])) ? pt[2] : eMin;
+    // SVG座標系でのY（viewBox: 0〜H=90）
+    var svgY   = H - PY - ((ele - eMin) / eRange) * (H - PY * 2);
+    // DOM座標系でのY（SVGの実際の表示高さで比例計算）
+    var domY   = svgY / H * svgR.height;
+    // wrap内での相対Y（svgRのtop - wrapRのtop = SVGのwrap内オフセット）
+    var offsetY = svgR.top - wrapR.top;
+    var wrapY  = offsetY + domY;
+
+    var pctStr = (pct * 100).toFixed(1) + '%';
+
+    cursor.style.cssText = [
+      'display:block', 'position:absolute',
+      'left:' + pctStr,
+      'top:' + offsetY.toFixed(1) + 'px',
+      'height:' + svgR.height.toFixed(1) + 'px',
+      'width:1px', 'background:rgba(0,0,0,.3)', 'pointer-events:none'
+    ].join(';') + ';';
+
+    dot.style.cssText = [
+      'display:block', 'position:absolute',
+      'left:' + pctStr,
+      'top:' + wrapY.toFixed(1) + 'px',
+      'background:' + color,
+      'pointer-events:none'
+    ].join(';') + ';';
+
+    // ツールチップ：SVGの上端より少し上に
+    tip.style.cssText = [
+      'display:block', 'position:absolute',
+      'left:' + pctStr,
+      'top:' + Math.max(0, offsetY - 24).toFixed(1) + 'px',
+      'pointer-events:none'
+    ].join(';') + ';';
+    tip.textContent = Math.round(ele) + 'm';
+
+    // マップマーカー同期
+    if (pt[0] && pt[1]) {
+      if (!elevMapMarker) {
+        elevMapMarker = L.circleMarker([pt[0],pt[1]], {
+          radius:8, fillColor:color, color:'#fff', weight:2.5, fillOpacity:1, zIndexOffset:1000
+        }).addTo(map);
+      } else {
+        elevMapMarker.setLatLng([pt[0],pt[1]]);
+        elevMapMarker.setStyle({fillColor:color});
+      }
     }
   };
-  svg.onmouseleave=function(){
-    cursor.style.display='none';dot.style.display='none';tip.style.display='none';
-    if(elevMapMarker){map.removeLayer(elevMapMarker);elevMapMarker=null;}
+  svg.onmouseleave = function() {
+    cursor.style.display = 'none';
+    dot.style.display    = 'none';
+    tip.style.display    = 'none';
+    if (elevMapMarker) { map.removeLayer(elevMapMarker); elevMapMarker = null; }
   };
 }
-function closeDetail(){
+
+function closeDetail() {
   document.getElementById('elevPanel').classList.remove('show');
-  if(elevMapMarker){map.removeLayer(elevMapMarker);elevMapMarker=null;}
+  if (elevMapMarker) { map.removeLayer(elevMapMarker); elevMapMarker = null; }
 }
 
-/* ── 全コース ── */
-async function toggleAllRoutes(){
-  const courses=getFiltered();
-  const allShown=courses.every(c=>visibleCourses.has(c.id));
-  const btn=document.getElementById('btnAllRoutes');
-  if(allShown){
-    courses.forEach(c=>{visibleCourses.delete(c.id);if(routeLayers[c.id]){map.removeLayer(routeLayers[c.id]);delete routeLayers[c.id];}});
-    closeDetail();activeId=null;btn.classList.remove('on');btn.innerHTML='<i class="ti ti-map-2"></i> 全コース表示';renderList();return;
+// ── 全コース ──
+async function toggleAllRoutes() {
+  var courses  = getFiltered();
+  var allShown = courses.every(function(c){return visibleCourses.has(String(c.id));});
+  var btn = document.getElementById('btnAllRoutes');
+  if (allShown) {
+    courses.forEach(function(c){
+      var sid = String(c.id);
+      visibleCourses.delete(sid);
+      if (routeLayers[sid]) { map.removeLayer(routeLayers[sid]); delete routeLayers[sid]; }
+    });
+    closeDetail(); activeId = null;
+    btn.classList.remove('on'); btn.innerHTML = '<i class="ti ti-map-2"></i> 全コース表示';
+    renderList(); return;
   }
-  btn.classList.add('on');btn.innerHTML='<i class="ti ti-map-2"></i> 全コース非表示';
+  btn.classList.add('on'); btn.innerHTML = '<i class="ti ti-map-2"></i> 全コース非表示';
   document.getElementById('mapLoading').classList.add('show');
-  for(const c of courses){
-    visibleCourses.add(c.id);
-    if(!gpxCache[c.id]){try{const data=await(await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=gpx&id='+c.id)).json();if(data.status==='ok')gpxCache[c.id]=parseGpxContent(data.content);}catch(e){}}
-    if(gpxCache[c.id]&&!routeLayers[c.id])drawRoute(c.id,gpxCache[c.id],c.route_color||AREA_COLORS[c.area]||'#888',false);
+  for (var i=0; i<courses.length; i++) {
+    var c = courses[i], sid = String(c.id);
+    visibleCourses.add(sid);
+    if (!gpxCache[sid]) {
+      try {
+        var data = await (await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=gpx&id='+sid)).json();
+        if (data.status==='ok') gpxCache[sid] = parseGpx(data.content);
+      } catch(e) {}
+    }
+    if (gpxCache[sid] && !routeLayers[sid]) drawRoute(sid, gpxCache[sid], c.route_color||getAreaColor(c.area), false);
   }
-  document.getElementById('mapLoading').classList.remove('show');renderList();
-  const all=Object.values(routeLayers);
-  if(all.length)map.fitBounds(L.featureGroup(all).getBounds(),{padding:[30,30]});
+  document.getElementById('mapLoading').classList.remove('show');
+  renderList();
+  var all = Object.values(routeLayers);
+  if (all.length) map.fitBounds(L.featureGroup(all).getBounds(), {padding:[30,30]});
 }
 
-/* ── 色選択 ── */
-function openColorDropdown(courseId,btn){
-  const dd=document.getElementById('colorDropdown');
-  const course=allCourses.find(c=>c.id==courseId);
-  const cur=course?(course.route_color||AREA_COLORS[course.area]||'#1D9E75'):'#1D9E75';
-  document.getElementById('colorPalette').innerHTML=ROUTE_COLORS.map(col=>'<span class="color-dot'+(col===cur?' selected':'')+'" style="background:'+col+';" onclick="applyRouteColor(\''+courseId+'\',\''+col+'\')"></span>').join('');
-  const rect=btn.getBoundingClientRect();
-  dd.style.cssText='display:block;position:fixed;bottom:'+(window.innerHeight-rect.top+4)+'px;right:'+(window.innerWidth-rect.right)+'px;';
-  colorDropdownTargetId=courseId;
+// ── 色選択 ──
+function openColorDropdown(courseId, btn) {
+  var dd = document.getElementById('colorDropdown');
+  var sid = String(courseId);
+  var course = allCourses.find(function(c){return String(c.id)===sid;});
+  var cur = course ? (course.route_color || getAreaColor(course.area)) : '#1D9E75';
+  document.getElementById('colorPalette').innerHTML = ROUTE_COLORS.map(function(col){
+    return '<span class="color-dot'+(col===cur?' selected':'')+'" style="background:'+col+';" onclick="applyRouteColor(''+sid+'',''+col+'')"></span>';
+  }).join('');
+  var rect = btn.getBoundingClientRect();
+  dd.style.cssText = 'display:block;position:fixed;bottom:'+(window.innerHeight-rect.top+4)+'px;right:'+(window.innerWidth-rect.right)+'px;';
 }
-function closeColorDropdown(){document.getElementById('colorDropdown').style.display='none';colorDropdownTargetId=null;}
-async function applyRouteColor(courseId,color){
-  const course=allCourses.find(c=>c.id==courseId);if(course)course.route_color=color;
-  if(routeLayers[courseId])routeLayers[courseId].setStyle({color});
-  closeColorDropdown();renderList();
-  try{await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=update_meta&id='+encodeURIComponent(courseId)+'&route_color='+encodeURIComponent(color));}catch(e){}
+function closeColorDropdown() {
+  document.getElementById('colorDropdown').style.display = 'none';
 }
-document.addEventListener('click',e=>{
-  const dd=document.getElementById('colorDropdown');
-  if(dd.style.display!=='none'&&!dd.contains(e.target)&&!e.target.closest('.color-select-btn'))closeColorDropdown();
+async function applyRouteColor(courseId, color) {
+  var sid = String(courseId);
+  var course = allCourses.find(function(c){return String(c.id)===sid;});
+  if (course) course.route_color = color;
+  if (routeLayers[sid]) routeLayers[sid].setStyle({color:color});
+  closeColorDropdown(); renderList();
+  try {
+    await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=update_meta&id='+encodeURIComponent(sid)+'&route_color='+encodeURIComponent(color));
+  } catch(e) {}
+}
+document.addEventListener('click', function(e){
+  var dd = document.getElementById('colorDropdown');
+  if (dd.style.display!=='none' && !dd.contains(e.target) && !e.target.closest('.color-select-btn')) closeColorDropdown();
 });
 
-/* ── フィルター ── */
-function setupFilters(){
-  ['areaFilter','typeFilter'].forEach(id=>{
-    document.getElementById(id).addEventListener('click',e=>{
-      const tag=e.target.closest('.tag');if(!tag)return;
-      document.querySelectorAll('#'+id+' .tag').forEach(t=>t.classList.remove('on'));tag.classList.add('on');
-      if(id==='areaFilter')courseFilter.area=tag.dataset.val;else courseFilter.type=tag.dataset.val;
+// ── フィルター ──
+function setupFilters() {
+  ['areaFilter','typeFilter'].forEach(function(id){
+    document.getElementById(id).addEventListener('click', function(e){
+      var tag = e.target.closest('.tag'); if (!tag) return;
+      document.querySelectorAll('#'+id+' .tag').forEach(function(t){t.classList.remove('on');});
+      tag.classList.add('on');
+      if (id==='areaFilter') courseFilter.area = tag.dataset.val;
+      else courseFilter.type = tag.dataset.val;
       renderList();
     });
   });
-  document.getElementById('distFilter').addEventListener('click',e=>{
-    const tag=e.target.closest('.tag');if(!tag)return;
-    document.querySelectorAll('#distFilter .tag').forEach(t=>t.classList.remove('on'));tag.classList.add('on');
-    courseFilter.dist_min=tag.dataset.min||'';courseFilter.dist_max=tag.dataset.max||'';renderList();
+  document.getElementById('distFilter').addEventListener('click', function(e){
+    var tag = e.target.closest('.tag'); if (!tag) return;
+    document.querySelectorAll('#distFilter .tag').forEach(function(t){t.classList.remove('on');});
+    tag.classList.add('on');
+    courseFilter.dist_min = tag.dataset.min || '';
+    courseFilter.dist_max = tag.dataset.max || '';
+    renderList();
   });
 }
 
-/* ── ユーティリティ ── */
-function fmtDur(sec){if(!sec)return'—';return Math.floor(sec/3600)+':'+String(Math.floor((sec%3600)/60)).padStart(2,'0');}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function getAreaKey(a){if(!a)return'';if(['仙台市内','秋保・定義','作並','七ツ森','泉・富谷'].includes(a))return'sendai';if(a==='高知')return'kochi';if(a==='しまなみ')return'shimana';if(a==='輪行先')return'rinko';return'';}
+function fmtDur(sec) { if(!sec)return'-'; return Math.floor(sec/3600)+':'+String(Math.floor((sec%3600)/60)).padStart(2,'0'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ── 起動 ── */
-initMap();setupFilters();loadTags();loadCourses();
+initMap(); setupFilters(); loadTags(); loadCourses();
 </script>
 </body>
 </html>
