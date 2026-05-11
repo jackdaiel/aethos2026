@@ -337,7 +337,7 @@ function renderList() {
     var visIcon = isVis ? 'ti-map-pin' : 'ti-map-pin-off';
     var areaStyle = 'background:' + bc + '22;color:' + bc + ';border:1px solid ' + bc + '88;';
 
-    html += '<div class="cc' + (activeId===sid?' active':'') + (isVis?' map-visible':'') + '" onclick="selectCourse('' + sid + '')">';
+    html += '<div class="cc' + (activeId===sid?' active':'') + (isVis?' map-visible':'') + '" onclick="selectCourse(\'' + sid + '\')">';
     html += '<div class="cc-header">';
     html += '<div class="cc-color-bar" style="background:' + color + ';"></div>';
     html += '<div class="cc-main">';
@@ -348,7 +348,7 @@ function renderList() {
     html += '<span><i class="ti ti-clock"></i>' + fmtDur(parseInt(c.duration_sec||0)) + '</span>';
     html += '<span><i class="ti ti-gauge"></i>' + parseFloat(c.avg_speed_kmh||0).toFixed(1) + 'km/h</span>';
     html += '</div></div>';
-    html += '<button class="vis-btn' + (isVis?' visible':'') + '" onclick="event.stopPropagation();toggleRouteVisible('' + sid + '',this)" title="' + (isVis?'非表示':'表示') + '">';
+    html += '<button class="vis-btn' + (isVis?' visible':'') + '" onclick="event.stopPropagation();toggleRouteVisible(\'' + sid + '\',this)" title="' + (isVis?'非表示':'表示') + '">';
     html += '<i class="ti ' + visIcon + '"></i></button>';
     html += '</div>';
     html += '<div class="cc-footer">';
@@ -357,7 +357,7 @@ function renderList() {
     html += '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + (isBr?'#378ADD':'#1D9E75') + ';margin:0 3px;vertical-align:middle;"></span>';
     html += (isBr ? 'Bryton' : 'Runkeeper');
     html += '</div>';
-    html += '<button class="color-select-btn" onclick="event.stopPropagation();openColorDropdown('' + sid + '',this)">';
+    html += '<button class="color-select-btn" onclick="event.stopPropagation();openColorDropdown(\'' + sid + '\',this)">';
     html += '<span class="color-swatch" style="background:' + color + ';"></span></button>';
     html += '</div></div>';
   });
