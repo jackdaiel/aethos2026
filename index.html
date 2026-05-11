@@ -226,11 +226,11 @@ var ROUTE_COLORS = [
 ];
 
 var TILES = {
-  voyager : {url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr:'&copy; CARTO &copy; OpenStreetMap'},
-  standard: {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',                       attr:'&copy; OpenStreetMap'},
-  pale    : {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',           attr:'&copy; CARTO &copy; OpenStreetMap'},
-  topo    : {url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',                         attr:'&copy; OpenTopoMap'},
-  dark    : {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',            attr:'&copy; CARTO &copy; OpenStreetMap'}
+  voyager : {url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr:'© CARTO © OpenStreetMap'},
+  standard: {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',                       attr:'© OpenStreetMap'},
+  pale    : {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',           attr:'© CARTO © OpenStreetMap'},
+  topo    : {url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',                         attr:'© OpenTopoMap'},
+  dark    : {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',            attr:'© CARTO © OpenStreetMap'}
 };
 
 // ── 状態 ──
@@ -274,7 +274,10 @@ async function loadTags() {
       s.className = 'tag'; s.dataset.val = t; s.textContent = t;
       tf.appendChild(s);
     });
-  } catch(e) { console.warn('loadTags error:', e); }
+  } catch(e) {
+    console.warn('loadTags error:', e);
+    document.getElementById('areaFilter').innerHTML += '<span style="color:red;font-size:11px;">タグ読み込みエラー: ' + e.message + '</span>';
+  }
 }
 
 // ── コース一覧 ──
@@ -293,7 +296,7 @@ async function loadCourses() {
     renderList();
   } catch(e) {
     console.error('loadCourses error:', e);
-    document.getElementById('courseList').innerHTML = '<div class="empty-msg">読み込みエラー: ' + e.message + '</div>';
+    document.getElementById('courseList').innerHTML = '<div class="empty-msg" style="color:#E24B4A;font-size:11px;text-align:left;padding:12px;">エラー:<br>' + e.name + ': ' + e.message + '</div>';
   }
 }
 
