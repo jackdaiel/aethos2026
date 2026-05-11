@@ -258,7 +258,7 @@ function setTile(name, btn) {
 // ── タグ読み込み ──
 async function loadTags() {
   try {
-    var res  = await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=tags');
+    var res  = await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=tags', {redirect:'follow', mode:'cors'});
     var data = await res.json();
     if (data.status !== 'ok') return;
     var af = document.getElementById('areaFilter');
@@ -280,7 +280,7 @@ async function loadTags() {
 // ── コース一覧 ──
 async function loadCourses() {
   try {
-    var res  = await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=list');
+    var res  = await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=list', {redirect:'follow', mode:'cors'});
     var data = await res.json();
     if (data.status !== 'ok') {
       document.getElementById('courseList').innerHTML = '<div class="empty-msg">GASエラー: ' + (data.message||'') + '</div>';
@@ -400,7 +400,7 @@ async function showRoute(id, fitBounds) {
   }
   document.getElementById('mapLoading').classList.add('show');
   try {
-    var res  = await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=gpx&id=' + sid);
+    var res  = await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=gpx&id=' + sid, {redirect:'follow', mode:'cors'});
     var data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message);
     var pts = parseGpx(data.content);
@@ -606,7 +606,7 @@ async function toggleAllRoutes() {
     visibleCourses.add(sid);
     if (!gpxCache[sid]) {
       try {
-        var res  = await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=gpx&id=' + sid);
+        var res  = await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=gpx&id=' + sid, {redirect:'follow', mode:'cors'});
         var data = await res.json();
         if (data.status === 'ok') gpxCache[sid] = parseGpx(data.content);
       } catch(e) {}
@@ -650,7 +650,7 @@ async function applyRouteColor(courseId, color) {
   closeColorDropdown();
   renderList();
   try {
-    await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=update_meta&id=' + encodeURIComponent(sid) + '&route_color=' + encodeURIComponent(color));
+    await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=update_meta&id=' + encodeURIComponent(sid) + '&route_color=' + encodeURIComponent(color), {redirect:'follow', mode:'cors'});
   } catch(e) {}
 }
 
