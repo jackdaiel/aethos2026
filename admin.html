@@ -377,28 +377,13 @@
         <div class="form-group">
           <label>エリア</label>
           <select id="fArea">
-            <option value="">選択してください</option>
-            <option>仙台市内</option>
-            <option>秋保・定義</option>
-            <option>作並</option>
-            <option>七ツ森</option>
-            <option>泉・富谷</option>
-            <option>高知</option>
-            <option>しまなみ</option>
-            <option>輪行先</option>
-            <option>その他</option>
+            <option value="">読み込み中...</option>
           </select>
         </div>
         <div class="form-group">
           <label>コースタイプ</label>
           <select id="fType">
-            <option value="">選択してください</option>
-            <option>ヒルクライム</option>
-            <option>山岳</option>
-            <option>平坦</option>
-            <option>サイクリングロード</option>
-            <option>輪行</option>
-            <option>その他</option>
+            <option value="">読み込み中...</option>
           </select>
         </div>
         <div class="form-group full">
@@ -470,8 +455,52 @@ window.addEventListener('DOMContentLoaded', () => {
   if (GAS_URL)    document.getElementById('gasUrl').value    = GAS_URL;
   if (ACCESS_KEY) document.getElementById('accessKey').value = ACCESS_KEY;
   updateKeyBadge();
-  if (GAS_URL && ACCESS_KEY) loadCourseList();
+  if (GAS_URL && ACCESS_KEY) {
+    loadTags();
+    loadCourseList();
+  }
 });
+
+
+// ── タグ定義をGASから読み込んでselectを構築 ────────────────
+async function loadTags() {
+  if (!GAS_URL || !ACCESS_KEY) return;
+  try {
+    const url  = `${GAS_URL}?key=${encodeURIComponent(ACCESS_KEY)}&action=tags`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.status !== 'ok') return;
+
+    // エリアselectを更新
+    const areaEl = document.getElementById('fArea');
+    areaEl.innerHTML = '<option value="">選択してください</option>';
+    (data.areas || []).forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a; opt.textContent = a;
+      areaEl.appendChild(opt);
+    });
+
+    // タイプselectを更新
+    const typeEl = document.getElementById('fType');
+    typeEl.innerHTML = '<option value="">選択してください</option>';
+    (data.types || []).forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      typeEl.appendChild(opt);
+    });
+  } catch(e) {
+    console.warn('loadTags error:', e);
+    // フォールバック：ハードコードの選択肢
+    const areaEl = document.getElementById('fArea');
+    areaEl.innerHTML = '<option value="">選択してください</option>' +
+      ['仙台市内','秋保・定義','蒲生・閖上','亘理・山本・相馬','高知','しまなみ','輪行先','その他','山形']
+      .map(a => `<option>${a}</option>`).join('');
+    const typeEl = document.getElementById('fType');
+    typeEl.innerHTML = '<option value="">選択してください</option>' +
+      ['ヒルクライム','山岳','平坦','サイクリングロード','輪行','その他']
+      .map(t => `<option>${t}</option>`).join('');
+  }
+}
 
 // ── 設定保存 ──────────────────────────────────────────────
 function saveConfig() {
@@ -480,6 +509,7 @@ function saveConfig() {
   localStorage.setItem('cl_gas_url',    GAS_URL);
   localStorage.setItem('cl_access_key', ACCESS_KEY);
   updateKeyBadge();
+  loadTags();
   loadCourseList();
   showToast('接続設定を保存しました', 'success');
 }
