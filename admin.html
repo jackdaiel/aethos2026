@@ -3,846 +3,672 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cycling Logs — 管理画面</title>
+<title>D's Cycling Logs</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  /* ── リセット・ベース ── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --green:   #1D9E75;
-    --green-l: #E1F5EE;
-    --green-d: #085041;
-    --blue:    #378ADD;
-    --blue-l:  #E6F1FB;
-    --amber:   #EF9F27;
-    --red:     #E24B4A;
-    --ink:     #1a1a1a;
-    --muted:   #6b7280;
-    --border:  #e5e7eb;
-    --bg:      #f5f7fa;
-    --white:   #ffffff;
-    --radius:  10px;
-    --shadow:  0 1px 4px rgba(0,0,0,.08);
-    --font:    'DM Sans', system-ui, sans-serif;
-  }
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--ink);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-
-  /* ── ヘッダー ── */
-  .header {
-    background: var(--white);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--green-d);
-  }
-  .logo svg { width: 22px; height: 22px; }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .key-badge {
-    font-size: 11px;
-    background: var(--green-l);
-    color: var(--green-d);
-    border: 1px solid #9FE1CB;
-    border-radius: 6px;
-    padding: 3px 8px;
-    font-family: monospace;
-  }
-
-  /* ── メインレイアウト ── */
-  .main { max-width: 960px; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 20px; }
-
-  /* ── カード ── */
-  .card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .card-header {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 14px;
-    background: #fafafa;
-  }
-  .card-header .icon { font-size: 18px; }
-  .card-body { padding: 20px; }
-
-  /* ── ドロップゾーン ── */
-  .dropzone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 40px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all .2s;
-    background: #fafafa;
-  }
-  .dropzone.drag-over {
-    border-color: var(--green);
-    background: var(--green-l);
-  }
-  .dropzone.has-file {
-    border-color: var(--green);
-    border-style: solid;
-    background: var(--green-l);
-  }
-  .drop-icon { font-size: 40px; margin-bottom: 8px; opacity: .5; }
-  .drop-main { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
-  .drop-sub  { font-size: 12px; color: var(--muted); }
-  .drop-file-name {
-    margin-top: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--green-d);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-  #fileInput { display: none; }
-
-  /* ── 解析結果プレビュー ── */
-  .preview-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 16px;
-  }
-  .preview-stat {
-    background: var(--bg);
-    border-radius: 8px;
-    padding: 10px 12px;
-    text-align: center;
-  }
-  .preview-stat .n { font-size: 18px; font-weight: 700; color: var(--ink); }
-  .preview-stat .l { font-size: 10px; color: var(--muted); margin-top: 2px; }
-  .preview-stat.bryton { background: var(--blue-l); }
-  .preview-stat.bryton .n { color: #0C447C; }
-
-  /* ── フォーム ── */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group.full { grid-column: 1 / -1; }
-  label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .03em; }
-  input[type="text"], input[type="date"], select, textarea {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: var(--font);
-    color: var(--ink);
-    background: var(--white);
-    transition: border-color .2s, box-shadow .2s;
-    appearance: none;
-  }
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--green);
-    box-shadow: 0 0 0 3px rgba(29,158,117,.12);
-  }
-  textarea { resize: vertical; min-height: 60px; }
-
-  /* ── ボタン ── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: var(--font);
-    cursor: pointer;
-    border: none;
-    transition: all .18s;
-  }
-  .btn:disabled { opacity: .45; cursor: not-allowed; }
-  .btn-primary {
-    background: var(--green);
-    color: #fff;
-  }
-  .btn-primary:not(:disabled):hover { background: var(--green-d); }
-  .btn-danger {
-    background: #fff;
-    color: var(--red);
-    border: 1px solid #f5c6c6;
-  }
-  .btn-danger:hover { background: #FFF0F0; }
-  .btn-sm { padding: 5px 10px; font-size: 12px; }
-  .btn-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  /* ── ステータス・トースト ── */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--ink);
-    color: #fff;
-    padding: 12px 18px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 500;
-    box-shadow: 0 4px 16px rgba(0,0,0,.2);
-    z-index: 999;
-    transform: translateY(80px);
-    opacity: 0;
-    transition: all .3s ease;
-    max-width: 320px;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { background: var(--green-d); }
-  .toast.error   { background: #991b1b; }
-
-  /* ── コース一覧テーブル ── */
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th {
-    text-align: left;
-    padding: 10px 12px;
-    background: #f8f9fa;
-    border-bottom: 1px solid var(--border);
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--muted);
-    letter-spacing: .04em;
-    white-space: nowrap;
-  }
-  tbody tr { border-bottom: 1px solid #f0f0f0; }
-  tbody tr:hover { background: #f8fdf9; }
-  tbody td { padding: 10px 12px; color: var(--ink); vertical-align: middle; }
-  .badge {
-    display: inline-block;
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    font-weight: 600;
-  }
-  .badge-rk  { background: var(--green-l); color: var(--green-d); border: 1px solid #9FE1CB; }
-  .badge-br  { background: var(--blue-l);  color: #0C447C;        border: 1px solid #85B7EB; }
-  .badge-man { background: #F1EFE8;        color: #444;           border: 1px solid #D3D1C7; }
-  .area-tag {
-    display: inline-block;
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--muted);
-    border: 1px solid var(--border);
-  }
-  .loading-row td { text-align: center; color: var(--muted); padding: 32px; }
-  .empty-row  td { text-align: center; color: var(--muted); padding: 32px; }
-
-  /* ── プログレスバー ── */
-  .progress-bar {
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--green);
-    border-radius: 2px;
-    width: 0%;
-    transition: width .3s;
-  }
-
-  /* ── ローディングスピナー ── */
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .spinner {
-    display: inline-block;
-    width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,.4);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
-
-  /* ── レスポンシブ ── */
-  @media (max-width: 600px) {
-    .preview-grid { grid-template-columns: repeat(2, 1fr); }
-    .form-grid    { grid-template-columns: 1fr; }
-    .form-group.full { grid-column: 1; }
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --green:#16A87A;--green-l:#E8F8F2;--green-d:#0A6B4D;--green-mid:#1BC98E;
+  --ink:#111827;--ink2:#374151;--muted:#6B7280;--muted2:#9CA3AF;
+  --border:#E5E7EB;--border2:#F3F4F6;--bg:#F9FAFB;--white:#FFFFFF;
+  --radius:10px;--radius-sm:6px;--radius-lg:14px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow:0 2px 8px rgba(0,0,0,.10);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.12);
+  --font:"DM Sans",system-ui,sans-serif;
+  --mono:"DM Mono",monospace;
+  --sb-w:288px;
+}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;-webkit-font-smoothing:antialiased;}
+.app{display:flex;flex-direction:column;height:100vh;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 18px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:1000;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--green-d),var(--green-mid));display:flex;align-items:center;justify-content:center;color:white;font-size:18px;}
+.logo-text{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.02em;}
+.logo-text span{color:var(--green);}
+.top-stats{display:flex;gap:24px;}
+.ts{text-align:right;}
+.ts-n{font-size:15px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.ts-l{font-size:11px;color:var(--muted2);margin-top:1px;}
+.main{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:var(--sb-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.sb-body{overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.sb-body::-webkit-scrollbar{width:4px;}
+.sb-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.filter-card{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;background:var(--white);}
+.filter-title{font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.tags{display:flex;flex-wrap:wrap;gap:4px;}
+.tag{font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:var(--white);transition:all .15s;line-height:1.7;font-weight:500;}
+.tag:hover{border-color:var(--green);color:var(--green-d);background:var(--green-l);}
+.tag.on{background:var(--green);border-color:var(--green-d);color:white;font-weight:600;}
+.list-header{font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;padding:4px 2px 2px;}
+.course-list{display:flex;flex-direction:column;gap:5px;}
+.cc{border:1px solid var(--border);border-radius:var(--radius);padding:10px 11px;cursor:pointer;background:var(--white);transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
+.cc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background .15s;}
+.cc:hover{border-color:#C8EAE0;background:#FAFFFE;}
+.cc.active{border-color:var(--green);background:var(--green-l);}
+.cc.active::before,.cc.map-visible::before{background:var(--green);}
+.cc-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.cc-color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1.5px solid rgba(255,255,255,.5);box-shadow:0 0 0 1.5px rgba(0,0,0,.15);}
+.cc-main{flex:1;min-width:0;}
+.cc-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
+.cc-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--muted);}
+.cc-meta span{display:flex;align-items:center;gap:2px;}
+.cc-meta i{font-size:12px;}
+.vis-btn{flex-shrink:0;width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s;color:var(--muted2);}
+.vis-btn:hover{border-color:var(--green);background:var(--green-l);color:var(--green-d);}
+.vis-btn.visible{background:var(--green);border-color:var(--green-d);color:white;}
+.vis-btn.loading{opacity:.5;pointer-events:none;}
+.cc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
+.cc-tags{display:flex;gap:4px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--muted);}
+.area-tag{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600;}
+.color-select-btn{display:flex;align-items:center;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--white);cursor:pointer;transition:all .15s;}
+.color-select-btn:hover{border-color:var(--green);}
+.color-swatch{width:13px;height:13px;border-radius:50%;border:1.5px solid rgba(0,0,0,.15);}
+.color-dropdown{position:fixed;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);padding:10px;z-index:9000;display:none;}
+.color-palette{display:grid;grid-template-columns:repeat(7,22px);gap:6px;}
+.color-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;}
+.color-dot:hover{transform:scale(1.25);}
+.color-dot.selected{border-color:var(--ink);transform:scale(1.15);}
+.empty-msg,.loading-msg{text-align:center;color:var(--muted);font-size:13px;padding:24px 0;}
+.map-wrap{flex:1;position:relative;}
+#map{width:100%;height:100%;}
+.map-controls{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;z-index:500;}
+.mc-btn{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-family:var(--font);color:var(--ink);cursor:pointer;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:6px;transition:all .15s;font-weight:500;}
+.mc-btn:hover,.mc-btn.on{background:var(--green-l);border-color:var(--green);color:var(--green-d);font-weight:600;}
+.layer-wrap{position:relative;}
+.layer-btn{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-family:var(--font);color:var(--ink);cursor:pointer;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:6px;transition:all .15s;font-weight:500;white-space:nowrap;}
+.layer-btn:hover{background:var(--green-l);border-color:var(--green);color:var(--green-d);}
+.layer-menu{position:absolute;top:calc(100% + 4px);right:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;display:none;min-width:130px;z-index:600;}
+.layer-menu.open{display:block;}
+.layer-item{padding:8px 14px;font-size:12px;font-family:var(--font);color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .12s;border-bottom:1px solid var(--border2);font-weight:500;}
+.layer-item:last-child{border-bottom:none;}
+.layer-item:hover{background:var(--green-l);color:var(--green-d);}
+.layer-item.on{background:var(--green-l);color:var(--green-d);font-weight:700;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+.map-loading{position:absolute;inset:0;background:rgba(255,255,255,.7);display:none;align-items:center;justify-content:center;z-index:600;font-size:13px;color:var(--muted);gap:8px;}
+.map-loading.show{display:flex;}
+.elev-panel{position:absolute;bottom:16px;right:16px;width:360px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:500;display:none;overflow:hidden;}
+.elev-panel.show{display:block;}
+.elev-panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid var(--border);}
+.ep-title-wrap{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+.elev-panel-title{font-size:14px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ep-time{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.elev-panel-close{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);flex-shrink:0;margin-left:8px;}
+.elev-panel-close:hover{background:var(--bg);}
+.elev-stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);}
+.elev-stat{padding:9px 8px;border-right:1px solid var(--border);text-align:center;}
+.elev-stat:last-child{border-right:none;}
+.elev-stat-n{font-size:13px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;}
+.elev-stat-l{font-size:10px;color:var(--muted2);margin-top:2px;}
+.elev-stat.br{background:#EFF6FF;}
+.elev-stat.br .elev-stat-n{color:#1565C0;}
+.elev-chart-wrap{padding:10px 12px 4px;background:var(--bg);position:relative;user-select:none;}
+#epChart{display:block;width:100%;cursor:crosshair;}
+#epCursor{position:absolute;width:1px;background:rgba(0,0,0,.25);pointer-events:none;display:none;}
+#epCursorDot{position:absolute;width:10px;height:10px;border-radius:50%;border:2px solid white;margin-left:-5px;margin-top:-5px;pointer-events:none;display:none;box-shadow:0 1px 4px rgba(0,0,0,.35);}
+#epTooltip{position:absolute;background:rgba(17,24,39,.88);color:white;font-size:11px;padding:3px 8px;border-radius:5px;pointer-events:none;display:none;white-space:nowrap;transform:translateX(-50%);z-index:10;font-family:var(--mono);}
+.elev-axis{display:flex;justify-content:space-between;font-size:10px;color:var(--muted2);margin-top:3px;padding-bottom:6px;font-family:var(--mono);}
+.elev-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid var(--border);}
+.elev-footer-date{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.elev-footer-src{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600;}
+.src-rk-badge{background:var(--green-l);color:var(--green-d);border:1px solid #9FE1CB;}
+.src-br-badge{background:#EFF6FF;color:#1565C0;border:1px solid #93C5FD;}
+@media(max-width:700px){
+  :root{--sb-w:100%;}
+  .main{flex-direction:column;}
+  .sidebar{width:100%;height:40vh;border-right:none;border-bottom:1px solid var(--border);}
+  .top-stats{display:none;}
+  .elev-panel{width:calc(100% - 24px);right:12px;}
+}
 </style>
 </head>
 <body>
-
-<!-- ヘッダー -->
-<header class="header">
-  <div class="logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/>
-      <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V9l-3-3 5 3 2 5"/>
-    </svg>
-    Cycling Logs — 管理画面
-  </div>
-  <div class="header-right">
-    <span class="key-badge" id="keyBadge">🔑 未設定</span>
-  </div>
-</header>
-
-<div class="main">
-
-  <!-- ① 設定カード -->
-  <div class="card">
-    <div class="card-header">
-      <span class="icon">⚙️</span> GAS 接続設定
+<div class="app">
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-icon"><i class="ti ti-bike"></i></div>
+      <div class="logo-text">D's <span>Cycling</span> Logs</div>
     </div>
-    <div class="card-body">
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>GAS ウェブアプリ URL</label>
-          <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec">
-        </div>
-        <div class="form-group">
-          <label>ACCESS KEY</label>
-          <input type="text" id="accessKey" placeholder="GASに設定したキー" value="">
-        </div>
-        <div class="form-group" style="align-self:flex-end;">
-          <button class="btn btn-primary" onclick="saveConfig()">保存して接続確認</button>
-        </div>
-      </div>
+    <div class="top-stats">
+      <div class="ts"><div class="ts-n" id="statCount">-</div><div class="ts-l">コース数</div></div>
+      <div class="ts"><div class="ts-n" id="statDist">-</div><div class="ts-l">総距離</div></div>
+      <div class="ts"><div class="ts-n" id="statElev">-</div><div class="ts-l">総獲得標高</div></div>
     </div>
-  </div>
-
-  <!-- ② アップロードカード -->
-  <div class="card">
-    <div class="card-header">
-      <span class="icon">📁</span> GPX / TCX アップロード
-    </div>
-    <div class="card-body">
-
-      <!-- ドロップゾーン -->
-      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-        <div class="drop-icon">🗺️</div>
-        <div class="drop-main">ここにファイルをドロップ</div>
-        <div class="drop-sub">.gpx / .tcx に対応（Runkeeper・Bryton どちらも可）</div>
-        <div class="drop-file-name" id="dropFileName" style="display:none;"></div>
-      </div>
-      <input type="file" id="fileInput" accept=".gpx,.tcx" onchange="onFileSelect(this.files[0])">
-
-      <!-- 解析プレビュー -->
-      <div id="previewArea" style="display:none; margin-top:16px;">
-        <div style="font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px;">📊 ファイルから自動解析（アップロード後に確定）</div>
-        <div class="preview-grid" id="previewGrid"></div>
-      </div>
-
-      <hr style="margin:20px 0; border:none; border-top:1px solid var(--border);">
-
-      <!-- コース情報入力 -->
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>コース名 *</label>
-          <input type="text" id="fName" placeholder="例：七ツ森周回ライド">
+  </header>
+  <div class="main">
+    <aside class="sidebar">
+      <div class="sb-body">
+        <div class="filter-card">
+          <div class="filter-title">エリア</div>
+          <div class="tags" id="areaFilter"><span class="tag on" data-val="">全て</span></div>
         </div>
-        <div class="form-group">
-          <label>ライド日</label>
-          <input type="date" id="fDate">
+        <div class="filter-card">
+          <div class="filter-title">距離帯</div>
+          <div class="tags" id="distFilter">
+            <span class="tag on" data-min="" data-max="">全て</span>
+            <span class="tag" data-min="0"   data-max="20">〜20km</span>
+            <span class="tag" data-min="20"  data-max="50">20〜50km</span>
+            <span class="tag" data-min="50"  data-max="80">50〜80km</span>
+            <span class="tag" data-min="80"  data-max="120">80〜120km</span>
+            <span class="tag" data-min="120" data-max="">120km〜</span>
+          </div>
         </div>
-        <div class="form-group">
-          <label>エリア</label>
-          <select id="fArea">
-            <option value="">読み込み中...</option>
-          </select>
+        <div class="filter-card">
+          <div class="filter-title">コースタイプ</div>
+          <div class="tags" id="typeFilter"><span class="tag on" data-val="">全て</span></div>
         </div>
-        <div class="form-group">
-          <label>コースタイプ</label>
-          <select id="fType">
-            <option value="">読み込み中...</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>メモ（任意）</label>
-          <textarea id="fMemo" placeholder="コメント・感想など"></textarea>
+        <div class="list-header" id="listHeader">コース一覧</div>
+        <div class="course-list" id="courseList">
+          <div class="loading-msg"><span class="spinner" style="display:inline-block;vertical-align:middle;margin-right:6px;"></span>読み込み中...</div>
         </div>
       </div>
-
-      <!-- アップロードボタン -->
-      <div class="btn-row">
-        <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled>
-          📤 アップロード登録
+    </aside>
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-controls">
+        <button class="mc-btn" id="btnAllRoutes" onclick="toggleAllRoutes()">
+          <i class="ti ti-map-2"></i> 全コース表示
         </button>
-        <button class="btn btn-danger" onclick="resetForm()">リセット</button>
-        <span id="uploadStatus" style="font-size:13px; color:var(--muted);"></span>
+        <div class="layer-wrap">
+          <button class="layer-btn" onclick="toggleLayerMenu()">
+            <i class="ti ti-layers-intersect"></i>
+            <span id="layerLabel">Voyager</span>
+            <i class="ti ti-chevron-down" style="font-size:11px;margin-left:2px;"></i>
+          </button>
+          <div class="layer-menu" id="layerMenu">
+            <div class="layer-item on" onclick="setTile('voyager',this,'Voyager')">Voyager</div>
+            <div class="layer-item" onclick="setTile('standard',this,'標準')">標準</div>
+            <div class="layer-item" onclick="setTile('pale',this,'淡色')">淡色</div>
+            <div class="layer-item" onclick="setTile('topo',this,'地形図')">地形図</div>
+            <div class="layer-item" onclick="setTile('dark',this,'ダーク')">ダーク</div>
+          </div>
+        </div>
       </div>
-      <div class="progress-bar" id="progressBar" style="display:none;">
-        <div class="progress-fill" id="progressFill"></div>
+      <div class="map-loading" id="mapLoading"><div class="spinner"></div>読み込み中...</div>
+      <div class="elev-panel" id="elevPanel">
+        <div class="elev-panel-header">
+          <div class="ep-title-wrap">
+            <div class="elev-panel-title" id="epTitle">-</div>
+            <div class="ep-time" id="epTime"></div>
+          </div>
+          <button class="elev-panel-close" onclick="closeDetail()">x</button>
+        </div>
+        <div class="elev-stats" id="epStats"></div>
+        <div class="elev-chart-wrap" id="epWrap">
+          <svg id="epChart" height="90" viewBox="0 0 332 90" preserveAspectRatio="none"></svg>
+          <div id="epCursor"></div>
+          <div id="epCursorDot"></div>
+          <div id="epTooltip"></div>
+          <div class="elev-axis"><span id="epEleMin">-m</span><span>標高プロファイル</span><span id="epEleMax">-m</span></div>
+        </div>
+        <div class="elev-footer">
+          <span class="elev-footer-date" id="epDate">-</span>
+          <span class="elev-footer-src" id="epSrc">-</span>
+        </div>
       </div>
-
     </div>
   </div>
-
-  <!-- ③ コース一覧カード -->
-  <div class="card">
-    <div class="card-header" style="justify-content:space-between;">
-      <span style="display:flex;align-items:center;gap:8px;"><span class="icon">📋</span> 登録済みコース</span>
-      <button class="btn btn-primary btn-sm" onclick="loadCourseList()">🔄 更新</button>
-    </div>
-    <div class="card-body" style="padding:0;">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>コース名</th>
-              <th>日付</th>
-              <th>エリア</th>
-              <th>距離</th>
-              <th>獲得標高</th>
-              <th>タイム</th>
-              <th>Avg速度</th>
-              <th>心拍/ケイデンス</th>
-              <th>ソース</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody id="courseTableBody">
-            <tr class="loading-row"><td colspan="10">読み込み中...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /main -->
-
-<!-- トースト -->
-<div class="toast" id="toast"></div>
-
+</div>
+<div class="color-dropdown" id="colorDropdown"><div class="color-palette" id="colorPalette"></div></div>
 <script>
-// ── 設定 ──────────────────────────────────────────────────
-let GAS_URL    = localStorage.getItem('cl_gas_url')  || '';
-let ACCESS_KEY = localStorage.getItem('cl_access_key') || '';
-let selectedFile = null;
-let parsedPreview = null;
 
-// 初期値をinputに反映
-window.addEventListener('DOMContentLoaded', () => {
-  if (GAS_URL)    document.getElementById('gasUrl').value    = GAS_URL;
-  if (ACCESS_KEY) document.getElementById('accessKey').value = ACCESS_KEY;
-  updateKeyBadge();
-  if (GAS_URL && ACCESS_KEY) {
-    loadTags();
-    loadCourseList();
+var GAS_URL    = 'https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec';
+var ACCESS_KEY = 'aethos2026';
+
+var AREA_COLOR_PALETTE = [
+  '#16A87A','#2563EB','#D97706','#7C3AED','#DC2626',
+  '#0891B2','#059669','#DB2777','#4B5563','#92400E'
+];
+var areaColorMap = {};
+function getAreaColor(area) {
+  if (!area) return '#6B7280';
+  if (!areaColorMap[area]) {
+    var idx = Object.keys(areaColorMap).length % AREA_COLOR_PALETTE.length;
+    areaColorMap[area] = AREA_COLOR_PALETTE[idx];
   }
-});
+  return areaColorMap[area];
+}
 
+var ROUTE_COLORS = [
+  '#E24B4A','#EF9F27','#F5C518','#16A87A','#20B2AA',
+  '#2563EB','#7C3AED','#DB2777','#FF6B35','#059669',
+  '#1E40AF','#92400E','#4B5563','#111827'
+];
 
-// ── タグ定義をGASから読み込んでselectを構築 ────────────────
+var TILES = {
+  voyager : {url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr:'CARTO / OSM'},
+  standard: {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',                       attr:'OpenStreetMap'},
+  pale    : {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',           attr:'CARTO / OSM'},
+  topo    : {url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',                         attr:'OpenTopoMap'},
+  dark    : {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',            attr:'CARTO / OSM'}
+};
+
+var allCourses    = [];
+var courseFilter  = {area:'', dist_min:'', dist_max:'', type:''};
+var routeLayers   = {};
+var activeId      = null;
+var visibleCourses = new Set();
+var gpxCache      = {};
+var map, currentTile, elevMapMarker = null;
+
+// ── 地図 ──
+function initMap() {
+  map = L.map('map', {zoomControl:true}).setView([38.26, 140.87], 11);
+  setTile('voyager', null, 'Voyager');
+}
+
+function setTile(name, itemEl, label) {
+  if (currentTile) map.removeLayer(currentTile);
+  var t = TILES[name];
+  currentTile = L.tileLayer(t.url, {attribution:t.attr, maxZoom:18}).addTo(map);
+  document.querySelectorAll('.layer-item').forEach(function(el){ el.classList.remove('on'); });
+  if (itemEl) itemEl.classList.add('on');
+  if (label) document.getElementById('layerLabel').textContent = label;
+  document.getElementById('layerMenu').classList.remove('open');
+}
+
+function toggleLayerMenu() {
+  document.getElementById('layerMenu').classList.toggle('open');
+}
+
+// ── タグ ──
 async function loadTags() {
-  if (!GAS_URL || !ACCESS_KEY) return;
   try {
-    const url  = `${GAS_URL}?key=${encodeURIComponent(ACCESS_KEY)}&action=tags`;
-    const res  = await fetch(url);
-    const data = await res.json();
+    var data = await (await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=tags')).json();
     if (data.status !== 'ok') return;
-
-    // エリアselectを更新
-    const areaEl = document.getElementById('fArea');
-    areaEl.innerHTML = '<option value="">選択してください</option>';
-    (data.areas || []).forEach(a => {
-      const opt = document.createElement('option');
-      opt.value = a; opt.textContent = a;
-      areaEl.appendChild(opt);
+    var af = document.getElementById('areaFilter');
+    (data.areas || []).forEach(function(a) {
+      getAreaColor(a);
+      var s = document.createElement('span');
+      s.className='tag'; s.dataset.val=a; s.textContent=a;
+      af.appendChild(s);
     });
-
-    // タイプselectを更新
-    const typeEl = document.getElementById('fType');
-    typeEl.innerHTML = '<option value="">選択してください</option>';
-    (data.types || []).forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t;
-      typeEl.appendChild(opt);
+    var tf = document.getElementById('typeFilter');
+    (data.types || []).forEach(function(t) {
+      var s = document.createElement('span');
+      s.className='tag'; s.dataset.val=t; s.textContent=t;
+      tf.appendChild(s);
     });
+  } catch(e) { console.warn('loadTags error:', e); }
+}
+
+// ── コース一覧 ──
+async function loadCourses() {
+  try {
+    var data = await (await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=list')).json();
+    if (data.status !== 'ok') {
+      document.getElementById('courseList').innerHTML = '<div class="empty-msg">エラー: ' + (data.message||'') + '</div>';
+      return;
+    }
+    allCourses = data.courses || [];
+    allCourses.forEach(function(c){ if(c.area) getAreaColor(c.area); });
+    updateStats(); renderList();
   } catch(e) {
-    console.warn('loadTags error:', e);
-    // フォールバック：ハードコードの選択肢
-    const areaEl = document.getElementById('fArea');
-    areaEl.innerHTML = '<option value="">選択してください</option>' +
-      ['仙台市内','秋保・定義','蒲生・閖上','亘理・山本・相馬','高知','しまなみ','輪行先','その他','山形']
-      .map(a => `<option>${a}</option>`).join('');
-    const typeEl = document.getElementById('fType');
-    typeEl.innerHTML = '<option value="">選択してください</option>' +
-      ['ヒルクライム','山岳','平坦','サイクリングロード','輪行','その他']
-      .map(t => `<option>${t}</option>`).join('');
+    document.getElementById('courseList').innerHTML = '<div class="empty-msg" style="color:#DC2626;">' + e.message + '</div>';
   }
 }
 
-// ── 設定保存 ──────────────────────────────────────────────
-function saveConfig() {
-  GAS_URL    = document.getElementById('gasUrl').value.trim();
-  ACCESS_KEY = document.getElementById('accessKey').value.trim();
-  localStorage.setItem('cl_gas_url',    GAS_URL);
-  localStorage.setItem('cl_access_key', ACCESS_KEY);
-  updateKeyBadge();
-  loadTags();
-  loadCourseList();
-  showToast('接続設定を保存しました', 'success');
+function updateStats() {
+  var cs = getFiltered();
+  document.getElementById('statCount').textContent = cs.length + ' コース';
+  document.getElementById('statDist').textContent  = cs.reduce(function(s,c){ return s+(parseFloat(c.distance_km)||0); },0).toFixed(0) + ' km';
+  document.getElementById('statElev').textContent  = cs.reduce(function(s,c){ return s+(parseFloat(c.elevation_m)||0); },0).toFixed(0) + ' m';
 }
 
-function updateKeyBadge() {
-  const b = document.getElementById('keyBadge');
-  b.textContent = ACCESS_KEY ? `🔑 ${ACCESS_KEY.slice(0,4)}****` : '🔑 未設定';
+function getFiltered() {
+  return allCourses.filter(function(c) {
+    var d = parseFloat(c.distance_km) || 0;
+    if (courseFilter.area     && c.area        !== courseFilter.area)     return false;
+    if (courseFilter.type     && c.course_type !== courseFilter.type)     return false;
+    if (courseFilter.dist_min !== '' && d <  parseFloat(courseFilter.dist_min)) return false;
+    if (courseFilter.dist_max !== '' && d >= parseFloat(courseFilter.dist_max)) return false;
+    return true;
+  });
 }
 
-// ── ドラッグ＆ドロップ ────────────────────────────────────
-const dz = document.getElementById('dropzone');
-dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-dz.addEventListener('drop', e => {
-  e.preventDefault();
-  dz.classList.remove('drag-over');
-  const f = e.dataTransfer.files[0];
-  if (f) onFileSelect(f);
-});
-
-// ── ファイル選択 ──────────────────────────────────────────
-function onFileSelect(file) {
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (!['gpx','tcx'].includes(ext)) {
-    showToast('.gpx または .tcx ファイルを選んでください', 'error');
+// ── レンダリング ──
+function renderList() {
+  var courses = getFiltered();
+  document.getElementById('listHeader').textContent = 'コース一覧(' + courses.length + '件)';
+  updateStats();
+  if (!courses.length) {
+    document.getElementById('courseList').innerHTML = '<div class="empty-msg">該当なし</div>';
     return;
   }
-  selectedFile = file;
-  dz.classList.add('has-file');
-
-  const fn = document.getElementById('dropFileName');
-  fn.style.display = 'flex';
-  fn.innerHTML = `✅ ${file.name} <span style="color:var(--muted);font-weight:400;">(${(file.size/1024).toFixed(1)} KB)</span>`;
-
-  // ファイルをローカルで軽く解析してプレビュー表示
-  const reader = new FileReader();
-  reader.onload = e => localPreview(e.target.result, ext, file.name);
-  reader.readAsText(file, 'UTF-8');
-
-  document.getElementById('uploadBtn').disabled = false;
+  document.getElementById('courseList').innerHTML = courses.map(function(c) {
+    var sid     = String(c.id);
+    var isVis   = visibleCourses.has(sid);
+    var color   = c.route_color || getAreaColor(c.area);
+    var bc      = getAreaColor(c.area);
+    var isBr    = (c.data_source || '').indexOf('bryton') >= 0;
+    var visIcon = isVis ? 'ti-map-pin' : 'ti-map-pin-off';
+    var visCls  = isVis ? ' visible' : '';
+    var cardCls = 'cc' + (activeId===sid?' active':'') + (isVis?' map-visible':'');
+    var aStyle  = 'background:' + bc + '18;color:' + bc + ';border:1px solid ' + bc + '44;';
+    var srcDot  = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + (isBr?'#2563EB':'#16A87A') + ';margin:0 3px;vertical-align:middle;"></span>';
+    return [
+      '<div class="' + cardCls + '" onclick="selectCourse(\'sid\')">',
+        '<div class="cc-header">',
+          '<div class="cc-color-dot" style="background:' + color + ';"></div>',
+          '<div class="cc-main">',
+            '<div class="cc-name">' + esc(c.name) + '</div>',
+            '<div class="cc-meta">',
+              '<span><i class="ti ti-route"></i>' + parseFloat(c.distance_km||0).toFixed(1) + 'km</span>',
+              '<span><i class="ti ti-trending-up"></i>' + Math.round(c.elevation_m||0) + 'm</span>',
+              '<span><i class="ti ti-clock"></i>' + fmtDur(parseInt(c.duration_sec||0)) + '</span>',
+              '<span><i class="ti ti-gauge"></i>' + parseFloat(c.avg_speed_kmh||0).toFixed(1) + 'km/h</span>',
+            '</div>',
+          '</div>',
+          '<button class="vis-btn' + visCls + '" onclick="event.stopPropagation();toggleRouteVisible(\'sid\',this)" title="' + (isVis?'非表示':'表示') + '">',
+            '<i class="ti ' + visIcon + '"></i>',
+          '</button>',
+        '</div>',
+        '<div class="cc-footer">',
+          '<div class="cc-tags">',
+            '<span class="area-tag" style="' + aStyle + '">' + esc(c.area||'-') + '</span>',
+            srcDot + (isBr ? 'Bryton' : 'Runkeeper'),
+          '</div>',
+          '<button class="color-select-btn" onclick="event.stopPropagation();openColorDropdown(\'sid\',this)">',
+            '<span class="color-swatch" style="background:' + color + ';"></span>',
+          '</button>',
+        '</div>',
+      '</div>',
+    ].join('');
+  }).join('');
 }
 
-// ── ローカルプレビュー（送信前の即時表示）────────────────
-function localPreview(content, ext, fileName) {
-  try {
-    const parser = new DOMParser();
-    let pts = [];
+// ── コース操作 ──
+async function selectCourse(id) {
+  var sid = String(id);
+  activeId = sid;
+  if (!visibleCourses.has(sid)) visibleCourses.add(sid);
+  renderList();
+  await showRoute(sid, true);
+}
 
-    if (ext === 'gpx') {
-      const doc = parser.parseFromString(content, 'text/xml');
-      const ns  = 'http://www.topografix.com/GPX/1/1';
-      const trkpts = doc.getElementsByTagNameNS(ns, 'trkpt');
-
-      // コース名をファイルから取得してフォームにセット
-      const nameEl = doc.getElementsByTagNameNS(ns, 'name')[0];
-      if (nameEl && !document.getElementById('fName').value) {
-        document.getElementById('fName').value = nameEl.textContent.replace(/Cycling\s+/i,'').trim();
-      }
-      // 日付
-      const timeEl = trkpts[0] && trkpts[0].getElementsByTagNameNS(ns,'time')[0];
-      if (timeEl && !document.getElementById('fDate').value) {
-        document.getElementById('fDate').value = timeEl.textContent.slice(0,10);
-      }
-
-      for (let i = 0; i < trkpts.length; i++) {
-        const lat = parseFloat(trkpts[i].getAttribute('lat'));
-        const lon = parseFloat(trkpts[i].getAttribute('lon'));
-        const eleEl = trkpts[i].getElementsByTagNameNS(ns,'ele')[0];
-        const ele   = eleEl ? parseFloat(eleEl.textContent) : null;
-        const tEl   = trkpts[i].getElementsByTagNameNS(ns,'time')[0];
-        const time  = tEl ? new Date(tEl.textContent) : null;
-        pts.push({ lat, lon, ele, time });
-      }
-
-    } else if (ext === 'tcx') {
-      const doc = parser.parseFromString(content, 'text/xml');
-      const ns  = 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2';
-      const tps = doc.getElementsByTagNameNS(ns,'Trackpoint');
-      const idEl = doc.getElementsByTagNameNS(ns,'Id')[0];
-      if (idEl && !document.getElementById('fDate').value) {
-        document.getElementById('fDate').value = idEl.textContent.slice(0,10);
-      }
-      for (let i = 0; i < tps.length; i++) {
-        const posEl = tps[i].getElementsByTagNameNS(ns,'Position')[0];
-        if (!posEl) continue;
-        const lat = parseFloat(posEl.getElementsByTagNameNS(ns,'LatitudeDegrees')[0]?.textContent);
-        const lon = parseFloat(posEl.getElementsByTagNameNS(ns,'LongitudeDegrees')[0]?.textContent);
-        const eleEl = tps[i].getElementsByTagNameNS(ns,'AltitudeMeters')[0];
-        const tEl   = tps[i].getElementsByTagNameNS(ns,'Time')[0];
-        const hrEl  = tps[i].getElementsByTagNameNS(ns,'Value')[0];
-        pts.push({
-          lat, lon,
-          ele  : eleEl ? parseFloat(eleEl.textContent) : null,
-          time : tEl   ? new Date(tEl.textContent)     : null,
-          hr   : hrEl  ? parseInt(hrEl.textContent)    : null,
-        });
-      }
-    }
-
-    // 統計計算
-    let dist = 0;
-    for (let i = 1; i < pts.length; i++) {
-      dist += haversine(pts[i-1].lat, pts[i-1].lon, pts[i].lat, pts[i].lon);
-    }
-    const eles  = pts.map(p => p.ele).filter(e => e != null);
-    let gain = 0;
-    for (let i = 1; i < eles.length; i++) { if (eles[i] > eles[i-1]) gain += eles[i]-eles[i-1]; }
-    const times = pts.map(p => p.time).filter(t => t);
-    const durSec = times.length >= 2 ? Math.round((times[times.length-1]-times[0])/1000) : 0;
-    const avgSpd = durSec > 0 ? (dist/1000)/(durSec/3600) : 0;
-    const hrs    = pts.map(p => p.hr).filter(h => h && h > 30);
-    const avgHr  = hrs.length > 0 ? Math.round(hrs.reduce((s,h)=>s+h,0)/hrs.length) : null;
-
-    parsedPreview = { dist, gain, durSec, avgSpd, avgHr };
-
-    // プレビュー表示
-    const grid = document.getElementById('previewGrid');
-    grid.innerHTML = `
-      <div class="preview-stat"><div class="n">${(dist/1000).toFixed(2)}</div><div class="l">距離 (km)</div></div>
-      <div class="preview-stat"><div class="n">${Math.round(gain)}</div><div class="l">獲得標高 (m)</div></div>
-      <div class="preview-stat"><div class="n">${fmtDur(durSec)}</div><div class="l">走行時間</div></div>
-      <div class="preview-stat"><div class="n">${avgSpd.toFixed(1)}</div><div class="l">平均速度 (km/h)</div></div>
-      ${avgHr ? `<div class="preview-stat bryton"><div class="n">${avgHr}</div><div class="l">平均心拍 (bpm)</div></div>` : ''}
-    `;
-    document.getElementById('previewArea').style.display = 'block';
-
-  } catch(err) {
-    console.warn('プレビュー解析エラー:', err);
+async function toggleRouteVisible(id, btn) {
+  var sid = String(id);
+  if (visibleCourses.has(sid)) {
+    visibleCourses.delete(sid);
+    if (routeLayers[sid]) { map.removeLayer(routeLayers[sid]); delete routeLayers[sid]; }
+    if (activeId === sid) { closeDetail(); activeId = null; }
+  } else {
+    visibleCourses.add(sid);
+    btn.classList.add('loading');
+    await showRoute(sid, false);
+    btn.classList.remove('loading');
+    var all = Object.values(routeLayers);
+    if (all.length) map.fitBounds(L.featureGroup(all).getBounds(), {padding:[40,40]});
   }
+  renderList();
 }
 
-// ── アップロード実行 ──────────────────────────────────────
-async function uploadFile() {
-  if (!selectedFile) { showToast('ファイルを選んでください', 'error'); return; }
-  if (!GAS_URL || !ACCESS_KEY) { showToast('GAS URLとACCESS KEYを設定してください', 'error'); return; }
-  const name = document.getElementById('fName').value.trim();
-  if (!name) { showToast('コース名を入力してください', 'error'); return; }
-
-  const btn = document.getElementById('uploadBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> 送信中...';
-  document.getElementById('progressBar').style.display = 'block';
-  setProgress(5);
-
-  try {
-    // ① Base64エンコード
-    document.getElementById('uploadStatus').textContent = 'エンコード中...';
-    const arrayBuf = await selectedFile.arrayBuffer();
-    const uint8    = new Uint8Array(arrayBuf);
-    let binary = '';
-    for (let i = 0; i < uint8.length; i += 8192) {
-      binary += String.fromCharCode.apply(null, uint8.subarray(i, i + 8192));
-    }
-    const b64 = btoa(binary);
-    setProgress(15);
-
-    // ② メタ情報を先にGASのCacheに保存
-    document.getElementById('uploadStatus').textContent = 'メタ情報を送信中...';
-    const uid = Date.now().toString(36) + Math.random().toString(36).slice(2);
-    const metaUrl = GAS_URL
-      + '?key=' + encodeURIComponent(ACCESS_KEY)
-      + '&action=save_meta'
-      + '&uid=' + uid
-      + '&name=' + encodeURIComponent(name)
-      + '&date=' + encodeURIComponent(document.getElementById('fDate').value)
-      + '&area=' + encodeURIComponent(document.getElementById('fArea').value)
-      + '&course_type=' + encodeURIComponent(document.getElementById('fType').value)
-      + '&memo=' + encodeURIComponent(document.getElementById('fMemo').value);
-    const metaRes  = await fetch(metaUrl);
-    const metaData = await metaRes.json();
-    if (metaData.status !== 'ok') throw new Error('メタ保存失敗: ' + metaData.message);
-    setProgress(20);
-
-    // ③ チャンク分割送信（1チャンク = 4000文字）
-    const CHUNK_SIZE = 4000;
-    const total      = Math.ceil(b64.length / CHUNK_SIZE);
-    document.getElementById('uploadStatus').textContent = 'チャンク送信中 (0/' + total + ')...';
-
-    for (let i = 0; i < total; i++) {
-      const chunk  = b64.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-      const isLast = (i === total - 1);
-      const chunkUrl = GAS_URL
-        + '?key='       + encodeURIComponent(ACCESS_KEY)
-        + '&action=chunk'
-        + '&uid='       + uid
-        + '&idx='       + i
-        + '&total='     + total
-        + '&file_name=' + encodeURIComponent(selectedFile.name)
-        + '&chunk='     + encodeURIComponent(chunk);
-
-      const res  = await fetch(chunkUrl);
-      const data = await res.json();
-
-      if (data.status === 'error') throw new Error(data.message);
-
-      if (isLast) {
-        setProgress(100);
-        document.getElementById('uploadStatus').textContent = '';
-        if (data.status === 'ok') {
-          showToast('「' + (data.name || name) + '」を登録しました ✅', 'success');
-          resetForm();
-          setTimeout(() => loadCourseList(), 1500);
-        } else {
-          throw new Error(data.message || '登録エラー');
-        }
-        return;
-      }
-
-      const pct = 20 + Math.round(((i + 1) / total) * 78);
-      setProgress(pct);
-      document.getElementById('uploadStatus').textContent =
-        'チャンク送信中 (' + (i+1) + '/' + total + ')...';
-    }
-
-  } catch(err) {
-    showToast('送信エラー: ' + err.message, 'error');
-    document.getElementById('uploadStatus').textContent = '';
-    btn.disabled = false;
-    btn.innerHTML = '📤 アップロード登録';
-    setProgress(0);
+async function showRoute(id, fitBounds) {
+  var sid    = String(id);
+  var course = allCourses.find(function(c){ return String(c.id) === sid; });
+  if (!course) return;
+  var color = course.route_color || getAreaColor(course.area);
+  if (gpxCache[sid]) {
+    drawRoute(sid, gpxCache[sid], color, fitBounds);
+    showDetailPanel(course, gpxCache[sid]);
+    return;
   }
+  document.getElementById('mapLoading').classList.add('show');
+  try {
+    var data = await (await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=gpx&id=' + sid)).json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    var pts = parseGpx(data.content);
+    gpxCache[sid] = pts;
+    drawRoute(sid, pts, color, fitBounds);
+    showDetailPanel(course, pts);
+  } catch(e) { console.error('showRoute error:', e); }
+  finally { document.getElementById('mapLoading').classList.remove('show'); }
 }
 
-// ── コース一覧を取得して表示 ──────────────────────────────
-async function loadCourseList() {
-  if (!GAS_URL || !ACCESS_KEY) return;
-  const tbody = document.getElementById('courseTableBody');
-  tbody.innerHTML = '<tr class="loading-row"><td colspan="10">読み込み中...</td></tr>';
+function parseGpx(content) {
+  var doc = new DOMParser().parseFromString(content, 'text/xml');
+  var ns  = 'http://www.topografix.com/GPX/1/1';
+  var pts = Array.from(doc.getElementsByTagNameNS(ns, 'trkpt'));
+  if (!pts.length) pts = Array.from(doc.getElementsByTagName('trkpt'));
+  return pts.map(function(pt) {
+    var lat  = parseFloat(pt.getAttribute('lat'));
+    var lon  = parseFloat(pt.getAttribute('lon'));
+    var eEl  = pt.getElementsByTagNameNS(ns,'ele')[0] || pt.getElementsByTagName('ele')[0];
+    return [lat, lon, eEl ? parseFloat(eEl.textContent) : null];
+  }).filter(function(p){ return !isNaN(p[0]) && !isNaN(p[1]); });
+}
 
-  try {
-    const url = `${GAS_URL}?action=list&key=${encodeURIComponent(ACCESS_KEY)}`;
-    const res  = await fetch(url);
-    const data = await res.json();
+function drawRoute(id, pts, color, fitBounds) {
+  var sid  = String(id);
+  if (routeLayers[sid]) map.removeLayer(routeLayers[sid]);
+  var ll   = pts.map(function(p){ return [p[0], p[1]]; });
+  var isAc = activeId === sid;
+  var line = L.polyline(ll, {color:color, weight:isAc?4.5:3, opacity:isAc?0.92:0.6}).addTo(map);
+  if (ll.length) {
+    L.circleMarker(ll[0], {radius:7,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1})
+      .addTo(map).bindTooltip('START');
+    if (ll.length > 1)
+      L.circleMarker(ll[ll.length-1], {radius:6,fillColor:'#DC2626',color:'#fff',weight:2.5,fillOpacity:1})
+        .addTo(map).bindTooltip('GOAL');
+  }
+  routeLayers[sid] = line;
+  if (fitBounds && ll.length) map.fitBounds(line.getBounds(), {padding:[40,40]});
+}
 
-    if (data.status !== 'ok') {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="10">エラー: ${data.message}</td></tr>`;
-      return;
-    }
-    if (!data.courses || data.courses.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">まだコースが登録されていません</td></tr>';
-      return;
-    }
+// ── 高低図パネル ──
+function showDetailPanel(course, pts) {
+  var color  = course.route_color || getAreaColor(course.area);
+  var isBr   = (course.data_source||'').indexOf('bryton') >= 0;
+  var hasHr  = parseInt(course.avg_hr||0) > 0;
+  var hasCad = parseInt(course.avg_cadence||0) > 0;
+  var hasMax = parseFloat(course.max_speed_kmh||0) > 0;
 
-    tbody.innerHTML = data.courses.map(c => {
-      const src = c.data_source || '';
-      const srcBadge = src.includes('runkeeper') ? `<span class="badge badge-rk">Runkeeper</span>`
-                     : src.includes('bryton')    ? `<span class="badge badge-br">Bryton</span>`
-                     : `<span class="badge badge-man">手動</span>`;
-      const hrCad = (c.avg_hr || c.avg_cadence)
-        ? `${c.avg_hr ? c.avg_hr+'bpm' : '—'} / ${c.avg_cadence ? c.avg_cadence+'rpm' : '—'}`
-        : '<span style="color:var(--muted)">—</span>';
+  // タイトル（dateをそのまま表示）
+  document.getElementById('epTitle').textContent = course.name || course.date || '-';
 
-      return `<tr>
-        <td style="font-weight:600; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(c.name)}</td>
-        <td style="white-space:nowrap;">${c.date || '—'}</td>
-        <td><span class="area-tag">${esc(c.area || '—')}</span></td>
-        <td style="white-space:nowrap;">${c.distance_km ? parseFloat(c.distance_km).toFixed(1)+' km' : '—'}</td>
-        <td style="white-space:nowrap;">${c.elevation_m ? Math.round(c.elevation_m)+' m' : '—'}</td>
-        <td style="white-space:nowrap;">${c.duration_sec ? fmtDur(parseInt(c.duration_sec)) : '—'}</td>
-        <td style="white-space:nowrap;">${c.avg_speed_kmh ? parseFloat(c.avg_speed_kmh).toFixed(1)+' km/h' : '—'}</td>
-        <td style="font-size:12px; white-space:nowrap;">${hrCad}</td>
-        <td>${srcBadge}</td>
-        <td style="white-space:nowrap;">
-          <button class="btn btn-danger btn-sm" onclick="deleteCourse('${c.id}','${esc(c.name)}')">削除</button>
-        </td>
-      </tr>`;
+  // スタート・終了時刻（SSのstart_time/end_time列）
+  var startT = course.start_time || '';
+  var endT   = course.end_time   || '';
+  var timeStr = (startT && endT) ? startT + ' → ' + endT
+              : startT ? startT + ' START'
+              : '';
+  document.getElementById('epTime').textContent = timeStr;
+
+  // 統計グリッド
+  var stats = [
+    {n: parseFloat(course.distance_km||0).toFixed(1) + 'km',    l: '距離'},
+    {n: Math.round(course.elevation_m||0) + 'm',                  l: '獲得標高'},
+    {n: fmtDur(parseInt(course.duration_sec||0)),                  l: '走行時間'},
+    {n: parseFloat(course.avg_speed_kmh||0).toFixed(1) + 'km/h', l: 'Avg速度'}
+  ];
+  if (hasMax) stats.push({n: parseFloat(course.max_speed_kmh).toFixed(1) + 'km/h', l:'MAX速度'});
+  if (hasHr)  stats.push({n: course.avg_hr + 'bpm',       l:'平均心拍', br:true});
+  if (hasCad) stats.push({n: course.avg_cadence + 'rpm',  l:'ケイデンス', br:true});
+
+  var cols = Math.min(stats.length, 4);
+  var epS  = document.getElementById('epStats');
+  epS.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+  epS.innerHTML = stats.map(function(s){
+    return '<div class="elev-stat' + (s.br?' br':'') + '"><div class="elev-stat-n">' + s.n + '</div><div class="elev-stat-l">' + s.l + '</div></div>';
+  }).join('');
+
+  // 高低図
+  var eles = pts.map(function(p){ return p[2]; }).filter(function(e){ return e !== null && !isNaN(e); });
+  if (eles.length > 1) {
+    var eMin = Math.min.apply(null,eles), eMax = Math.max.apply(null,eles), eRange = eMax-eMin||1;
+    var step = Math.max(1, Math.floor(pts.length/300));
+    var sampled = pts.filter(function(_,i){ return i%step===0; });
+    var W=332, H=90, PY=8;
+    var points = sampled.map(function(p,i){
+      var e = (p[2]!==null&&!isNaN(p[2])) ? p[2] : eMin;
+      return ((i/(sampled.length-1))*W).toFixed(1) + ',' + (H-PY-((e-eMin)/eRange)*(H-PY*2)).toFixed(1);
+    });
+    var poly = points.join(' ');
+    var fill = '0,'+H+' '+poly+' '+W+','+H;
+    var grids = [0.25,0.5,0.75].map(function(r){
+      var y = (H-PY)-r*(H-PY*2);
+      return '<line x1="0" y1="'+y.toFixed(1)+'" x2="'+W+'" y2="'+y.toFixed(1)+'" stroke="#E5E7EB" stroke-width="1"/>';
     }).join('');
-
-  } catch(err) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">読み込みエラー（GAS URLとキーを確認）</td></tr>`;
+    document.getElementById('epChart').innerHTML =
+      '<defs><linearGradient id="epG" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="'+color+'" stop-opacity="0.4"/>' +
+      '<stop offset="100%" stop-color="'+color+'" stop-opacity="0.04"/>' +
+      '</linearGradient></defs>' +
+      '<rect width="'+W+'" height="'+H+'" fill="#F9FAFB"/>' + grids +
+      '<polygon points="'+fill+'" fill="url(#epG)"/>' +
+      '<polyline points="'+poly+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('epEleMin').textContent = Math.round(eMin)+'m';
+    document.getElementById('epEleMax').textContent = Math.round(eMax)+'m';
+    setupCursor(sampled, eMin, eMax, W, H, PY, color);
   }
+
+  document.getElementById('epDate').textContent = (course.date || '-').toString().slice(0,10);
+  var srcEl = document.getElementById('epSrc');
+  srcEl.textContent = isBr ? 'Bryton' : 'Runkeeper';
+  srcEl.className   = 'elev-footer-src ' + (isBr ? 'src-br-badge' : 'src-rk-badge');
+  document.getElementById('elevPanel').classList.add('show');
 }
 
-// ── コース削除 ────────────────────────────────────────────
-async function deleteCourse(id, name) {
-  if (!confirm(`「${name}」を削除しますか？\n（Driveのファイルは残ります）`)) return;
-  try {
-    const payload = { action: 'delete', id };
-    const url = `${GAS_URL}?key=${encodeURIComponent(ACCESS_KEY)}&data=${encodeURIComponent(JSON.stringify(payload))}`;
-    const res  = await fetch(url);
-    const data = await res.json();
-    if (data.status === 'ok') {
-      showToast(`「${name}」を削除しました`, 'success');
-      setTimeout(() => loadCourseList(), 1000);
-    } else {
-      showToast('削除エラー: ' + (data.message || '不明'), 'error');
+// ── カーソル+マップ同期 ──
+function setupCursor(sampled, eMin, eMax, W, H, PY, color) {
+  var svg    = document.getElementById('epChart');
+  var cursor = document.getElementById('epCursor');
+  var dot    = document.getElementById('epCursorDot');
+  var tip    = document.getElementById('epTooltip');
+  var wrap   = document.getElementById('epWrap');
+  var eRange = eMax - eMin || 1;
+  if (elevMapMarker) { map.removeLayer(elevMapMarker); elevMapMarker = null; }
+
+  svg.onmousemove = function(e) {
+    var svgR  = svg.getBoundingClientRect();
+    var wrapR = wrap.getBoundingClientRect();
+    var pct   = Math.max(0, Math.min(1, (e.clientX - svgR.left) / svgR.width));
+    var idx   = Math.round(pct * (sampled.length - 1));
+    var pt    = sampled[idx]; if (!pt) return;
+    var ele   = (pt[2]!==null&&!isNaN(pt[2])) ? pt[2] : eMin;
+    var svgY  = H - PY - ((ele-eMin)/eRange)*(H-PY*2);
+    var domY  = svgY/H*svgR.height;
+    var offY  = svgR.top - wrapR.top;
+    var pctStr = (pct*100).toFixed(1)+'%';
+
+    cursor.style.cssText = 'display:block;position:absolute;left:'+pctStr+';top:'+offY.toFixed(1)+'px;height:'+svgR.height.toFixed(1)+'px;width:1px;background:rgba(0,0,0,.25);pointer-events:none;';
+    dot.style.cssText    = 'display:block;position:absolute;left:'+pctStr+';top:'+(offY+domY).toFixed(1)+'px;background:'+color+';pointer-events:none;';
+    tip.style.cssText    = 'display:block;position:absolute;left:'+pctStr+';top:'+Math.max(0,offY-26).toFixed(1)+'px;pointer-events:none;';
+    tip.textContent      = Math.round(ele)+'m';
+
+    if (pt[0] && pt[1]) {
+      if (!elevMapMarker) {
+        elevMapMarker = L.circleMarker([pt[0],pt[1]],{radius:8,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1,zIndexOffset:1000}).addTo(map);
+      } else {
+        elevMapMarker.setLatLng([pt[0],pt[1]]);
+        elevMapMarker.setStyle({fillColor:color});
+      }
     }
-  } catch(err) {
-    showToast('削除エラー: ' + err.message, 'error');
+  };
+  svg.onmouseleave = function() {
+    cursor.style.display='none'; dot.style.display='none'; tip.style.display='none';
+    if (elevMapMarker) { map.removeLayer(elevMapMarker); elevMapMarker=null; }
+  };
+}
+
+function closeDetail() {
+  document.getElementById('elevPanel').classList.remove('show');
+  if (elevMapMarker) { map.removeLayer(elevMapMarker); elevMapMarker=null; }
+}
+
+// ── 全コース ──
+async function toggleAllRoutes() {
+  var courses  = getFiltered();
+  var allShown = courses.every(function(c){ return visibleCourses.has(String(c.id)); });
+  var btn      = document.getElementById('btnAllRoutes');
+  if (allShown) {
+    courses.forEach(function(c){
+      var sid=String(c.id); visibleCourses.delete(sid);
+      if(routeLayers[sid]){map.removeLayer(routeLayers[sid]);delete routeLayers[sid];}
+    });
+    closeDetail(); activeId=null;
+    btn.classList.remove('on'); btn.innerHTML='<i class="ti ti-map-2"></i> 全コース表示';
+    renderList(); return;
   }
+  btn.classList.add('on'); btn.innerHTML='<i class="ti ti-map-2"></i> 全コース非表示';
+  document.getElementById('mapLoading').classList.add('show');
+  for (var i=0;i<courses.length;i++) {
+    var c=courses[i], sid=String(c.id);
+    visibleCourses.add(sid);
+    if (!gpxCache[sid]) {
+      try {
+        var data=await(await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=gpx&id='+sid)).json();
+        if(data.status==='ok') gpxCache[sid]=parseGpx(data.content);
+      } catch(e){}
+    }
+    if(gpxCache[sid]&&!routeLayers[sid]) drawRoute(sid,gpxCache[sid],c.route_color||getAreaColor(c.area),false);
+  }
+  document.getElementById('mapLoading').classList.remove('show');
+  renderList();
+  var all=Object.values(routeLayers);
+  if(all.length) map.fitBounds(L.featureGroup(all).getBounds(),{padding:[30,30]});
 }
 
-// ── フォームリセット ──────────────────────────────────────
-function resetForm() {
-  selectedFile  = null;
-  parsedPreview = null;
-  document.getElementById('fileInput').value = '';
-  document.getElementById('dropzone').classList.remove('has-file', 'drag-over');
-  document.getElementById('dropFileName').style.display = 'none';
-  document.getElementById('previewArea').style.display  = 'none';
-  document.getElementById('fName').value  = '';
-  document.getElementById('fDate').value  = '';
-  document.getElementById('fArea').value  = '';
-  document.getElementById('fType').value  = '';
-  document.getElementById('fMemo').value  = '';
-  document.getElementById('uploadBtn').disabled = true;
-  document.getElementById('uploadBtn').innerHTML = '📤 アップロード登録';
-  document.getElementById('uploadStatus').textContent = '';
-  document.getElementById('progressBar').style.display = 'none';
-  setProgress(0);
+// ── 色選択 ──
+function openColorDropdown(courseId, btn) {
+  var dd=document.getElementById('colorDropdown');
+  var sid=String(courseId);
+  var course=allCourses.find(function(c){return String(c.id)===sid;});
+  var cur=course?(course.route_color||getAreaColor(course.area)):'#16A87A';
+  document.getElementById('colorPalette').innerHTML=ROUTE_COLORS.map(function(col){
+    return '<span class="color-dot'+(col===cur?' selected':'')+'" style="background:'+col+';" onclick="applyRouteColor(\'sid\',\'col\')"></span>';
+  }).join('');
+  var rect=btn.getBoundingClientRect();
+  dd.style.cssText='display:block;position:fixed;bottom:'+(window.innerHeight-rect.top+4)+'px;right:'+(window.innerWidth-rect.right)+'px;top:auto;left:auto;';
+}
+function closeColorDropdown(){document.getElementById('colorDropdown').style.display='none';}
+async function applyRouteColor(courseId,color){
+  var sid=String(courseId);
+  var course=allCourses.find(function(c){return String(c.id)===sid;});
+  if(course)course.route_color=color;
+  if(routeLayers[sid])routeLayers[sid].setStyle({color:color});
+  closeColorDropdown(); renderList();
+  try{await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=update_meta&id='+encodeURIComponent(sid)+'&route_color='+encodeURIComponent(color));}catch(e){}
+}
+document.addEventListener('click',function(e){
+  var dd=document.getElementById('colorDropdown');
+  if(dd.style.display!=='none'&&!dd.contains(e.target)&&!e.target.closest('.color-select-btn'))closeColorDropdown();
+  if(!e.target.closest('.layer-wrap'))document.getElementById('layerMenu').classList.remove('open');
+});
+
+// ── フィルター ──
+function setupFilters(){
+  ['areaFilter','typeFilter'].forEach(function(id){
+    document.getElementById(id).addEventListener('click',function(e){
+      var tag=e.target.closest('.tag');if(!tag)return;
+      document.querySelectorAll('#'+id+' .tag').forEach(function(t){t.classList.remove('on');});
+      tag.classList.add('on');
+      if(id==='areaFilter')courseFilter.area=tag.dataset.val;
+      else courseFilter.type=tag.dataset.val;
+      renderList();
+    });
+  });
+  document.getElementById('distFilter').addEventListener('click',function(e){
+    var tag=e.target.closest('.tag');if(!tag)return;
+    document.querySelectorAll('#distFilter .tag').forEach(function(t){t.classList.remove('on');});
+    tag.classList.add('on');
+    courseFilter.dist_min=tag.dataset.min||'';
+    courseFilter.dist_max=tag.dataset.max||'';
+    renderList();
+  });
 }
 
-// ── ユーティリティ ────────────────────────────────────────
-function haversine(lat1,lon1,lat2,lon2) {
-  const R=6371000, toR=Math.PI/180;
-  const dLat=(lat2-lat1)*toR, dLon=(lon2-lon1)*toR;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*toR)*Math.cos(lat2*toR)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-function fmtDur(sec) {
-  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60);
-  return `${h}:${String(m).padStart(2,'0')}`;
-}
-function setProgress(pct) {
-  document.getElementById('progressFill').style.width = pct + '%';
-}
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className   = `toast ${type} show`;
-  setTimeout(() => t.classList.remove('show'), 3500);
-}
+function fmtDur(sec){if(!sec)return'-';return Math.floor(sec/3600)+':'+String(Math.floor((sec%3600)/60)).padStart(2,'0');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── 起動 ──
+initMap(); setupFilters(); loadTags(); loadCourses();
+
 </script>
 </body>
 </html>
