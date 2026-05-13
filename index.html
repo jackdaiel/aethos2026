@@ -340,7 +340,8 @@ function renderList() {
     document.getElementById('courseList').innerHTML = '<div class="empty-msg">該当なし</div>';
     return;
   }
-  document.getElementById('courseList').innerHTML = courses.map(function(c) {
+  var html = '';
+  courses.forEach(function(c) {
     var sid     = String(c.id);
     var isVis   = visibleCourses.has(sid);
     var color   = c.route_color || getAreaColor(c.area);
@@ -351,36 +352,29 @@ function renderList() {
     var cardCls = 'cc' + (activeId===sid?' active':'') + (isVis?' map-visible':'');
     var aStyle  = 'background:' + bc + '18;color:' + bc + ';border:1px solid ' + bc + '44;';
     var srcDot  = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + (isBr?'#2563EB':'#16A87A') + ';margin:0 3px;vertical-align:middle;"></span>';
-    return [
-      '<div class="' + cardCls + '" onclick="selectCourse(\'sid\')">',
-        '<div class="cc-header">',
-          '<div class="cc-color-dot" style="background:' + color + ';"></div>',
-          '<div class="cc-main">',
-            '<div class="cc-name">' + esc(c.name) + '</div>',
-            '<div class="cc-meta">',
-              '<span><i class="ti ti-route"></i>' + parseFloat(c.distance_km||0).toFixed(1) + 'km</span>',
-              '<span><i class="ti ti-trending-up"></i>' + Math.round(c.elevation_m||0) + 'm</span>',
-              '<span><i class="ti ti-clock"></i>' + fmtDur(parseInt(c.duration_sec||0)) + '</span>',
-              '<span><i class="ti ti-gauge"></i>' + parseFloat(c.avg_speed_kmh||0).toFixed(1) + 'km/h</span>',
-            '</div>',
-          '</div>',
-          '<button class="vis-btn' + visCls + '" onclick="event.stopPropagation();toggleRouteVisible(\'sid\',this)" title="' + (isVis?'非表示':'表示') + '">',
-            '<i class="ti ' + visIcon + '"></i>',
-          '</button>',
-        '</div>',
-        '<div class="cc-footer">',
-          '<div class="cc-tags">',
-            '<span class="area-tag" style="' + aStyle + '">' + esc(c.area||'-') + '</span>',
-            srcDot + (isBr ? 'Bryton' : 'Runkeeper'),
-          '</div>',
-          '<button class="color-select-btn" onclick="event.stopPropagation();openColorDropdown(\'sid\',this)">',
-            '<span class="color-swatch" style="background:' + color + ';"></span>',
-          '</button>',
-        '</div>',
-      '</div>',
-    ].join('');
-  }).join('');
+    // onclick はdata属性+イベントデリゲーションで対応（エスケープ問題を回避）
+    html += '<div class="' + cardCls + '" data-id="' + sid + '" data-action="select">';
+    html += '<div class="cc-header">';
+    html += '<div class="cc-color-dot" style="background:' + color + ';"></div>';
+    html += '<div class="cc-main">';
+    html += '<div class="cc-name">' + esc(c.name) + '</div>';
+    html += '<div class="cc-meta">';
+    html += '<span><i class="ti ti-route"></i>' + parseFloat(c.distance_km||0).toFixed(1) + 'km</span>';
+    html += '<span><i class="ti ti-trending-up"></i>' + Math.round(c.elevation_m||0) + 'm</span>';
+    html += '<span><i class="ti ti-clock"></i>' + fmtDur(parseInt(c.duration_sec||0)) + '</span>';
+    html += '<span><i class="ti ti-gauge"></i>' + parseFloat(c.avg_speed_kmh||0).toFixed(1) + 'km/h</span>';
+    html += '</div></div>';
+    html += '<button class="vis-btn' + visCls + '" data-id="' + sid + '" data-action="toggle" title="' + (isVis?'非表示':'表示') + '">';
+    html += '<i class="ti ' + visIcon + '"></i></button>';
+    html += '</div>';
+    html += '<div class="cc-footer">';
+    html += '<div class="cc-tags"><span class="area-tag" style="' + aStyle + '">' + esc(c.area||'-') + '</span>' + srcDot + (isBr?'Bryton':'Runkeeper') + '</div>';
+    html += '<button class="color-select-btn" data-id="' + sid + '" data-action="color" title="色を変更"><span class="color-swatch" style="background:' + color + ';"></span></button>';
+    html += '</div></div>';
+  });
+  document.getElementById('courseList').innerHTML = html;
 }
+
 
 // ── コース操作 ──
 async function selectCourse(id) {
@@ -643,6 +637,23 @@ document.addEventListener('click',function(e){
 
 // ── フィルター ──
 function setupFilters(){
+  // コース一覧のクリックをイベントデリゲーションで処理（onclick属性のエスケープ問題を回避）
+  document.getElementById('courseList').addEventListener('click', function(e) {
+    var card   = e.target.closest('[data-action]');
+    if (!card) return;
+    var action = card.dataset.action;
+    var id     = card.dataset.id;
+    if (action === 'select') {
+      selectCourse(id);
+    } else if (action === 'toggle') {
+      e.stopPropagation();
+      toggleRouteVisible(id, card);
+    } else if (action === 'color') {
+      e.stopPropagation();
+      openColorDropdown(id, card);
+    }
+  });
+
   ['areaFilter','typeFilter'].forEach(function(id){
     document.getElementById(id).addEventListener('click',function(e){
       var tag=e.target.closest('.tag');if(!tag)return;
