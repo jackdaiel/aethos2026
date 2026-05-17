@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cycling Logs — 管理画面</title>
+<title>D's Cycling Logs — 管理</title>
 <style>
   /* ── リセット・ベース ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -299,19 +299,25 @@
     .form-group.full { grid-column: 1; }
   }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
 </head>
 <body>
 
 <!-- ヘッダー -->
 <header class="header">
-  <div class="logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/>
-      <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V9l-3-3 5 3 2 5"/>
-    </svg>
-    Cycling Logs — 管理画面
+  <div class="logo" style="display:flex;align-items:center;gap:10px;">
+    <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#0A6B4D,#1BC98E);display:flex;align-items:center;justify-content:center;color:white;font-size:17px;">
+      <i class="ti ti-bike"></i>
+    </div>
+    <span style="font-size:16px;font-weight:700;color:#111827;letter-spacing:-.02em;">D's <span style="color:#16A87A;">Cycling</span> Logs <span style="font-size:12px;font-weight:500;color:#6B7280;">— 管理</span></span>
   </div>
-  <div class="header-right">
+  <div class="header-right" style="display:flex;align-items:center;gap:8px;">
+    <a href="index.html" style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#E8F8F2;color:#0A6B4D;border:1px solid #16A87A;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">
+      <i class="ti ti-map-2"></i> マップ
+    </a>
+    <a href="https://docs.google.com/spreadsheets/d/1-Sflmw5LHbjqvGFy3Fs9thP1VSN59I1097WSUeSnxuY/edit" target="_blank" style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#F9FAFB;color:#6B7280;border:1px solid #E5E7EB;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">
+      <i class="ti ti-table"></i> SS
+    </a>
     <span class="key-badge" id="keyBadge">🔑 未設定</span>
   </div>
 </header>
