@@ -690,7 +690,7 @@ async function uploadFile() {
     setProgress(20);
 
     // ③ チャンク分割送信（1チャンク = 4000文字）
-    const CHUNK_SIZE = 4000;
+    const CHUNK_SIZE = 6000;
     const total      = Math.ceil(b64.length / CHUNK_SIZE);
     document.getElementById('uploadStatus').textContent = 'チャンク送信中 (0/' + total + ')...';
 
