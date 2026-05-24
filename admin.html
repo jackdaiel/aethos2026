@@ -451,20 +451,21 @@
 
 <script>
 // ── 設定 ──────────────────────────────────────────────────
-let GAS_URL    = localStorage.getItem('cl_gas_url')  || '';
-let ACCESS_KEY = localStorage.getItem('cl_access_key') || '';
+let GAS_URL    = 'https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec';
+let ACCESS_KEY = 'aethos2026';
 let selectedFile = null;
 let parsedPreview = null;
 
 // 初期値をinputに反映
 window.addEventListener('DOMContentLoaded', () => {
-  if (GAS_URL)    document.getElementById('gasUrl').value    = GAS_URL;
-  if (ACCESS_KEY) document.getElementById('accessKey').value = ACCESS_KEY;
+  // localStorageの古いURLを強制クリア（ハードコード値を使う）
+  localStorage.removeItem('cl_gas_url');
+  localStorage.removeItem('cl_access_key');
+  document.getElementById('gasUrl').value    = GAS_URL;
+  document.getElementById('accessKey').value = ACCESS_KEY;
   updateKeyBadge();
-  if (GAS_URL && ACCESS_KEY) {
-    loadTags();
-    loadCourseList();
-  }
+  loadTags();
+  loadCourseList();
 });
 
 
@@ -510,14 +511,11 @@ async function loadTags() {
 
 // ── 設定保存 ──────────────────────────────────────────────
 function saveConfig() {
-  GAS_URL    = document.getElementById('gasUrl').value.trim();
-  ACCESS_KEY = document.getElementById('accessKey').value.trim();
-  localStorage.setItem('cl_gas_url',    GAS_URL);
-  localStorage.setItem('cl_access_key', ACCESS_KEY);
+  // GAS URLとACCESS KEYはハードコード済み。入力欄の値は無視。
   updateKeyBadge();
   loadTags();
   loadCourseList();
-  showToast('接続設定を保存しました', 'success');
+  showToast('接続確認しました', 'success');
 }
 
 function updateKeyBadge() {
@@ -690,7 +688,7 @@ async function uploadFile() {
     setProgress(20);
 
     // ③ チャンク分割送信（1チャンク = 4000文字）
-    const CHUNK_SIZE = 6000;
+    const CHUNK_SIZE = 4000;
     const total      = Math.ceil(b64.length / CHUNK_SIZE);
     document.getElementById('uploadStatus').textContent = 'チャンク送信中 (0/' + total + ')...';
 
