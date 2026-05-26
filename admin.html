@@ -301,6 +301,11 @@
   }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+
+<script>
+var GAS_URL    = '<?= GAS_URL ?>';
+var ACCESS_KEY = '<?= ACCESS_KEY ?>';
+</script>
 </head>
 <body>
 
@@ -325,27 +330,7 @@
 
 <div class="main">
 
-  <!-- ① 設定カード -->
-  <div class="card">
-    <div class="card-header">
-      <span class="icon">⚙️</span> GAS 接続設定
-    </div>
-    <div class="card-body">
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>GAS ウェブアプリ URL</label>
-          <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec">
-        </div>
-        <div class="form-group">
-          <label>ACCESS KEY</label>
-          <input type="text" id="accessKey" placeholder="GASに設定したキー" value="">
-        </div>
-        <div class="form-group" style="align-self:flex-end;">
-          <button class="btn btn-primary" onclick="saveConfig()">保存して接続確認</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- 設定カード（GASから自動注入のため非表示）-->
 
   <!-- ② アップロードカード -->
   <div class="card">
@@ -452,18 +437,13 @@
 
 <script>
 // ── 設定 ──────────────────────────────────────────────────
-let GAS_URL    = 'https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec';
-let ACCESS_KEY = 'aethos2026';
+// GAS_URLとACCESS_KEYはHTMLのグローバル変数として定義済み
+// （scriptタグの外でGASテンプレートエンジンが注入）
 let selectedFile = null;
 let parsedPreview = null;
 
 // 初期値をinputに反映
 window.addEventListener('DOMContentLoaded', () => {
-  // localStorageの古いURLを強制クリア（ハードコード値を使う）
-  localStorage.removeItem('cl_gas_url');
-  localStorage.removeItem('cl_access_key');
-  document.getElementById('gasUrl').value    = GAS_URL;
-  document.getElementById('accessKey').value = ACCESS_KEY;
   updateKeyBadge();
   loadTags();
   loadCourseList();
@@ -512,11 +492,10 @@ async function loadTags() {
 
 // ── 設定保存 ──────────────────────────────────────────────
 function saveConfig() {
-  // GAS URLとACCESS KEYはハードコード済み。入力欄の値は無視。
+  // GASから自動注入済み
   updateKeyBadge();
   loadTags();
   loadCourseList();
-  showToast('接続確認しました', 'success');
 }
 
 function updateKeyBadge() {
