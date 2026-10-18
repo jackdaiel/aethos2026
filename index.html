@@ -251,12 +251,17 @@ var courseFilter  = {area:'', dist_min:'', dist_max:'', type:''};
 var routeLayers   = {};
 var activeId      = null;
 var visibleCourses = new Set();
-var gpxCache      = {};
+var gpxCache      = {};   // 詳細GPX（標高つき・選択時だけ取得）
+var routeCache    = {};   // 軽量ルート {id: encoded polyline}
+var routePtsCache = {};   // 軽量ルートのデコード結果
+var routesReady   = null; // 軽量ルート取得のPromise
+var ROUTE_STORE   = 'cyclinglogs_routes_v1';
 var map, currentTile, elevMapMarker = null;
 
 // ── 地図 ──
 function initMap() {
-  map = L.map('map', {zoomControl:true}).setView([38.26, 140.87], 11);
+  // 多数のルートを描くのでSVGではなくCanvasで描画
+  map = L.map('map', {zoomControl:true, preferCanvas:true}).setView([38.26, 140.87], 11);
   setTile('pale', null, '淡色');
 }
 
@@ -373,15 +378,65 @@ function renderList() {
 }
 
 
+// ── 軽量ルート ──
+// 手元コピー（localStorage）を即使い、裏で最新を1リクエストで取得して差し替える
+function loadRoutes() {
+  try { routeCache = JSON.parse(localStorage.getItem(ROUTE_STORE) || '{}') || {}; } catch(e) { routeCache = {}; }
+  routesReady = fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=routes')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.status !== 'ok') return;
+      routeCache = data.routes || {};
+      try { localStorage.setItem(ROUTE_STORE, JSON.stringify(routeCache)); } catch(e) {}
+    })
+    .catch(function(e){ console.warn('loadRoutes error:', e); });
+}
+
+async function getOverviewPts(sid) {
+  if (!routeCache[sid] && routesReady) await routesReady;
+  if (!routeCache[sid]) return null;
+  if (!routePtsCache[sid]) routePtsCache[sid] = decodePolyline(routeCache[sid]);
+  return routePtsCache[sid];
+}
+
+function decodePolyline(str) {
+  var pts = [], idx = 0, lat = 0, lng = 0;
+  while (idx < str.length) {
+    var b, shift = 0, result = 0;
+    do { b = str.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+    shift = 0; result = 0;
+    do { b = str.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+    pts.push([lat / 1e5, lng / 1e5]);
+  }
+  return pts;
+}
+
+async function fetchGpxPts(sid) {
+  if (gpxCache[sid]) return gpxCache[sid];
+  var data = await (await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=gpx&id=' + sid)).json();
+  if (data.status !== 'ok') throw new Error(data.message);
+  return (gpxCache[sid] = parseGpx(data.content));
+}
+
+function courseColor(sid) {
+  var c = allCourses.find(function(x){ return String(x.id) === sid; });
+  return c ? (c.route_color || getAreaColor(c.area)) : '#16A87A';
+}
+
 // ── コース操作 ──
 async function selectCourse(id) {
-  var sid = String(id);
+  var sid  = String(id);
+  var prev = activeId;
   activeId = sid;
+  if (prev && prev !== sid && routeLayers[prev]) routeLayers[prev].line.setStyle({weight:3, opacity:0.6});
   if (!visibleCourses.has(sid)) visibleCourses.add(sid);
   renderList();
   await showRoute(sid, true);
 }
 
+// 表示ボタン：地図に線を出すだけ（軽量ルートを使う）
 async function toggleRouteVisible(id, btn) {
   var sid = String(id);
   if (visibleCourses.has(sid)) {
@@ -391,7 +446,10 @@ async function toggleRouteVisible(id, btn) {
   } else {
     visibleCourses.add(sid);
     btn.classList.add('loading');
-    await showRoute(sid, false);
+    try {
+      var pts = (await getOverviewPts(sid)) || (await fetchGpxPts(sid));
+      drawRoute(sid, pts, courseColor(sid), false, false);
+    } catch(e) { console.error('toggleRouteVisible error:', e); }
     btn.classList.remove('loading');
     var all = Object.values(routeLayers);
     if (all.length) map.fitBounds(L.featureGroup(all).getBounds(), {padding:[40,40]});
@@ -399,23 +457,18 @@ async function toggleRouteVisible(id, btn) {
   renderList();
 }
 
+// コース選択：軽量ルートで先に線を出し、詳細GPXが届いたら差し替えて高低図を表示
 async function showRoute(id, fitBounds) {
   var sid    = String(id);
   var course = allCourses.find(function(c){ return String(c.id) === sid; });
   if (!course) return;
-  var color = course.route_color || getAreaColor(course.area);
-  if (gpxCache[sid]) {
-    drawRoute(sid, gpxCache[sid], color, fitBounds);
-    showDetailPanel(course, gpxCache[sid]);
-    return;
-  }
-  document.getElementById('mapLoading').classList.add('show');
+  var color = courseColor(sid);
+  if (!gpxCache[sid] && routeCache[sid]) drawRoute(sid, await getOverviewPts(sid), color, fitBounds, true);
+  if (!gpxCache[sid]) document.getElementById('mapLoading').classList.add('show');
   try {
-    var data = await (await fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=gpx&id=' + sid)).json();
-    if (data.status !== 'ok') throw new Error(data.message);
-    var pts = parseGpx(data.content);
-    gpxCache[sid] = pts;
-    drawRoute(sid, pts, color, fitBounds);
+    var pts = await fetchGpxPts(sid);
+    if (activeId !== sid) return; // 待っている間に別のコースが選ばれた
+    drawRoute(sid, pts, color, fitBounds && !routeCache[sid], true);
     showDetailPanel(course, pts);
   } catch(e) { console.error('showRoute error:', e); }
   finally { document.getElementById('mapLoading').classList.remove('show'); }
@@ -434,20 +487,22 @@ function parseGpx(content) {
   }).filter(function(p){ return !isNaN(p[0]) && !isNaN(p[1]); });
 }
 
-function drawRoute(id, pts, color, fitBounds) {
+// 線とSTART/GOALをひとまとめにして管理（非表示にしたとき一緒に消えるように）
+function drawRoute(id, pts, color, fitBounds, withMarkers) {
   var sid  = String(id);
   if (routeLayers[sid]) map.removeLayer(routeLayers[sid]);
   var ll   = pts.map(function(p){ return [p[0], p[1]]; });
   var isAc = activeId === sid;
-  var line = L.polyline(ll, {color:color, weight:isAc?4.5:3, opacity:isAc?0.92:0.6}).addTo(map);
-  if (ll.length) {
-    L.circleMarker(ll[0], {radius:7,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1})
-      .addTo(map).bindTooltip('START');
+  var line = L.polyline(ll, {color:color, weight:isAc?4.5:3, opacity:isAc?0.92:0.6});
+  var group = L.featureGroup([line]);
+  if (withMarkers && ll.length) {
+    group.addLayer(L.circleMarker(ll[0], {radius:7,fillColor:color,color:'#fff',weight:2.5,fillOpacity:1}).bindTooltip('START'));
     if (ll.length > 1)
-      L.circleMarker(ll[ll.length-1], {radius:6,fillColor:'#DC2626',color:'#fff',weight:2.5,fillOpacity:1})
-        .addTo(map).bindTooltip('GOAL');
+      group.addLayer(L.circleMarker(ll[ll.length-1], {radius:6,fillColor:'#DC2626',color:'#fff',weight:2.5,fillOpacity:1}).bindTooltip('GOAL'));
   }
-  routeLayers[sid] = line;
+  group.line = line;
+  group.addTo(map);
+  routeLayers[sid] = group;
   if (fitBounds && ll.length) map.fitBounds(line.getBounds(), {padding:[40,40]});
 }
 
@@ -588,17 +643,25 @@ async function toggleAllRoutes() {
   }
   btn.classList.add('on'); btn.innerHTML='<i class="ti ti-map-2"></i> 全コース非表示';
   document.getElementById('mapLoading').classList.add('show');
+  // 軽量ルート（1リクエストで全件）で描く。軽量ルートが無いコースだけ詳細GPXを並列で取得
+  var missing = [];
   for (var i=0;i<courses.length;i++) {
-    var c=courses[i], sid=String(c.id);
+    var sid=String(courses[i].id);
     visibleCourses.add(sid);
-    if (!gpxCache[sid]) {
-      try {
-        var data=await(await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=gpx&id='+sid)).json();
-        if(data.status==='ok') gpxCache[sid]=parseGpx(data.content);
-      } catch(e){}
-    }
-    if(gpxCache[sid]&&!routeLayers[sid]) drawRoute(sid,gpxCache[sid],c.route_color||getAreaColor(c.area),false);
+    if (routeLayers[sid]) continue;
+    var pts = gpxCache[sid] || await getOverviewPts(sid);
+    if (pts) drawRoute(sid, pts, courseColor(sid), false, false);
+    else missing.push(sid);
   }
+  var queue = missing.slice();
+  async function worker() {
+    while (queue.length) {
+      var s = queue.shift();
+      try { var p = await fetchGpxPts(s); if (visibleCourses.has(s) && !routeLayers[s]) drawRoute(s, p, courseColor(s), false, false); }
+      catch(e) { console.warn('gpx error:', s, e); }
+    }
+  }
+  await Promise.all([worker(), worker(), worker(), worker()]);
   document.getElementById('mapLoading').classList.remove('show');
   renderList();
   var all=Object.values(routeLayers);
@@ -649,7 +712,7 @@ function fmtDur(sec){if(!sec)return'-';return Math.floor(sec/3600)+':'+String(Ma
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // ── 起動 ──
-initMap(); setupFilters(); loadTags(); loadCourses();
+initMap(); setupFilters(); loadTags(); loadCourses(); loadRoutes();
 
 </script>
 </body>
