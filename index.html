@@ -255,7 +255,10 @@ var gpxCache      = {};   // 詳細GPX（標高つき・選択時だけ取得）
 var routeCache    = {};   // 軽量ルート {id: encoded polyline}
 var routePtsCache = {};   // 軽量ルートのデコード結果
 var routesReady   = null; // 軽量ルート取得のPromise
+var profileCache  = {};   // 高低図用プロファイル {id: encoded}（緯度・経度・標高 約300点）
+var profilesReady = null; // プロファイル取得のPromise
 var ROUTE_STORE   = 'cyclinglogs_routes_v1';
+var PROFILE_STORE = 'cyclinglogs_profiles_v1';
 var map, currentTile, elevMapMarker = null;
 
 // ── 地図 ──
@@ -390,6 +393,36 @@ function loadRoutes() {
       try { localStorage.setItem(ROUTE_STORE, JSON.stringify(routeCache)); } catch(e) {}
     })
     .catch(function(e){ console.warn('loadRoutes error:', e); });
+  // 全コース表示を優先し、プロファイルは軽量ルートの後に裏で取る
+  try { profileCache = JSON.parse(localStorage.getItem(PROFILE_STORE) || '{}') || {}; } catch(e) { profileCache = {}; }
+  profilesReady = routesReady
+    .then(function(){ return fetch(GAS_URL + '?key=' + encodeURIComponent(ACCESS_KEY) + '&action=profiles'); })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.status !== 'ok') return;
+      profileCache = data.profiles || {};
+      try { localStorage.setItem(PROFILE_STORE, JSON.stringify(profileCache)); } catch(e) {}
+    })
+    .catch(function(e){ console.warn('loadProfiles error:', e); });
+}
+
+// プロファイル（緯度・経度・標高）を取得。取得中なら待つ（詳細GPXより速い）
+async function getProfilePts(sid) {
+  if (!profileCache[sid] && profilesReady) await profilesReady;
+  return profileCache[sid] ? decodeProfile(profileCache[sid]) : null;
+}
+
+function decodeProfile(str) {
+  var pts = [], idx = 0, v = [0, 0, 0];
+  while (idx < str.length) {
+    for (var k = 0; k < 3; k++) {
+      var b, shift = 0, result = 0;
+      do { b = str.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      v[k] += (result & 1) ? ~(result >> 1) : (result >> 1);
+    }
+    pts.push([v[0] / 1e5, v[1] / 1e5, v[2] / 10]);
+  }
+  return pts;
 }
 
 async function getOverviewPts(sid) {
@@ -457,13 +490,25 @@ async function toggleRouteVisible(id, btn) {
   renderList();
 }
 
-// コース選択：軽量ルートで先に線を出し、詳細GPXが届いたら差し替えて高低図を表示
+// コース選択：軽量ルート＋プロファイルで表示（通信なし）。
+// プロファイルが無いコースだけ、詳細GPXを取得して差し替える
 async function showRoute(id, fitBounds) {
   var sid    = String(id);
   var course = allCourses.find(function(c){ return String(c.id) === sid; });
   if (!course) return;
   var color = courseColor(sid);
   if (!gpxCache[sid] && routeCache[sid]) drawRoute(sid, await getOverviewPts(sid), color, fitBounds, true);
+  if (!gpxCache[sid]) {
+    if (!profileCache[sid]) document.getElementById('mapLoading').classList.add('show');
+    var prof = await getProfilePts(sid);
+    document.getElementById('mapLoading').classList.remove('show');
+    if (activeId !== sid) return; // 待っている間に別のコースが選ばれた
+    if (prof && prof.length > 1) {
+      if (!routeCache[sid]) drawRoute(sid, prof, color, fitBounds, true);
+      showDetailPanel(course, prof);
+      return;
+    }
+  }
   if (!gpxCache[sid]) document.getElementById('mapLoading').classList.add('show');
   try {
     var pts = await fetchGpxPts(sid);
