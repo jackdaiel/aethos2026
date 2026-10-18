@@ -66,14 +66,6 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
 .cc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
 .cc-tags{display:flex;gap:4px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--muted);}
 .area-tag{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600;}
-.color-select-btn{display:flex;align-items:center;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--white);cursor:pointer;transition:all .15s;}
-.color-select-btn:hover{border-color:var(--green);}
-.color-swatch{width:13px;height:13px;border-radius:50%;border:1.5px solid rgba(0,0,0,.15);}
-.color-dropdown{position:fixed;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);padding:10px;z-index:9000;display:none;}
-.color-palette{display:grid;grid-template-columns:repeat(7,22px);gap:6px;}
-.color-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;}
-.color-dot:hover{transform:scale(1.25);}
-.color-dot.selected{border-color:var(--ink);transform:scale(1.15);}
 .empty-msg,.loading-msg{text-align:center;color:var(--muted);font-size:13px;padding:24px 0;}
 .map-wrap{flex:1;position:relative;}
 #map{width:100%;height:100%;}
@@ -188,15 +180,15 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
         <div class="layer-wrap">
           <button class="layer-btn" onclick="toggleLayerMenu()">
             <i class="ti ti-layers-intersect"></i>
-            <span id="layerLabel">Voyager</span>
+            <span id="layerLabel">淡色</span>
             <i class="ti ti-chevron-down" style="font-size:11px;margin-left:2px;"></i>
           </button>
           <div class="layer-menu" id="layerMenu">
-            <div class="layer-item on" onclick="setTile('voyager',this,'Voyager')">Voyager</div>
-            <div class="layer-item" onclick="setTile('standard',this,'標準')">標準</div>
-            <div class="layer-item" onclick="setTile('pale',this,'淡色')">淡色</div>
+            <div class="layer-item on" onclick="setTile('pale',this,'淡色')">淡色</div>
+            <div class="layer-item" onclick="setTile('gsi',this,'地理院標準')">地理院標準</div>
+            <div class="layer-item" onclick="setTile('photo',this,'航空写真')">航空写真</div>
+            <div class="layer-item" onclick="setTile('standard',this,'OSM')">OSM</div>
             <div class="layer-item" onclick="setTile('topo',this,'地形図')">地形図</div>
-            <div class="layer-item" onclick="setTile('dark',this,'ダーク')">ダーク</div>
           </div>
         </div>
       </div>
@@ -225,7 +217,6 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--i
     </div>
   </div>
 </div>
-<div class="color-dropdown" id="colorDropdown"><div class="color-palette" id="colorPalette"></div></div>
 <script>
 
 var GAS_URL    = 'https://script.google.com/macros/s/AKfycbyA43JNPVwYKm_3Q78eHK0gOdu2EWvlF3OYYkVS3TsZ-naLLxjDSf8qPJJb8osMdcAr/exec';
@@ -245,18 +236,14 @@ function getAreaColor(area) {
   return areaColorMap[area];
 }
 
-var ROUTE_COLORS = [
-  '#E24B4A','#EF9F27','#F5C518','#16A87A','#20B2AA',
-  '#2563EB','#7C3AED','#DB2777','#FF6B35','#059669',
-  '#1E40AF','#92400E','#4B5563','#111827'
-];
-
+// CARTOはAPIキー必須になったため国土地理院タイル中心に変更
+var GSI_ATTR = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">国土地理院</a>';
 var TILES = {
-  voyager : {url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr:'CARTO / OSM'},
-  standard: {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',                       attr:'OpenStreetMap'},
-  pale    : {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',           attr:'CARTO / OSM'},
-  topo    : {url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',                         attr:'OpenTopoMap'},
-  dark    : {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',            attr:'CARTO / OSM'}
+  pale    : {url:'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',         attr:GSI_ATTR},
+  gsi     : {url:'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',          attr:GSI_ATTR},
+  photo   : {url:'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', attr:GSI_ATTR},
+  standard: {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',                attr:'OpenStreetMap'},
+  topo    : {url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',                  attr:'OpenTopoMap'}
 };
 
 var allCourses    = [];
@@ -270,7 +257,7 @@ var map, currentTile, elevMapMarker = null;
 // ── 地図 ──
 function initMap() {
   map = L.map('map', {zoomControl:true}).setView([38.26, 140.87], 11);
-  setTile('voyager', null, 'Voyager');
+  setTile('pale', null, '淡色');
 }
 
 function setTile(name, itemEl, label) {
@@ -380,7 +367,6 @@ function renderList() {
     html += '</div>';
     html += '<div class="cc-footer">';
     html += '<div class="cc-tags"><span class="area-tag" style="' + aStyle + '">' + esc(c.area||'-') + '</span>' + srcDot + (isBr?'Bryton':'Runkeeper') + '</div>';
-    html += '<button class="color-select-btn" data-id="' + sid + '" data-action="color" title="色を変更"><span class="color-swatch" style="background:' + color + ';"></span></button>';
     html += '</div></div>';
   });
   document.getElementById('courseList').innerHTML = html;
@@ -619,30 +605,7 @@ async function toggleAllRoutes() {
   if(all.length) map.fitBounds(L.featureGroup(all).getBounds(),{padding:[30,30]});
 }
 
-// ── 色選択 ──
-function openColorDropdown(courseId, btn) {
-  var dd=document.getElementById('colorDropdown');
-  var sid=String(courseId);
-  var course=allCourses.find(function(c){return String(c.id)===sid;});
-  var cur=course?(course.route_color||getAreaColor(course.area)):'#16A87A';
-  document.getElementById('colorPalette').innerHTML=ROUTE_COLORS.map(function(col){
-    return '<span class="color-dot'+(col===cur?' selected':'')+'" style="background:'+col+';" onclick="applyRouteColor(\'sid\',\'col\')"></span>';
-  }).join('');
-  var rect=btn.getBoundingClientRect();
-  dd.style.cssText='display:block;position:fixed;bottom:'+(window.innerHeight-rect.top+4)+'px;right:'+(window.innerWidth-rect.right)+'px;top:auto;left:auto;';
-}
-function closeColorDropdown(){document.getElementById('colorDropdown').style.display='none';}
-async function applyRouteColor(courseId,color){
-  var sid=String(courseId);
-  var course=allCourses.find(function(c){return String(c.id)===sid;});
-  if(course)course.route_color=color;
-  if(routeLayers[sid])routeLayers[sid].setStyle({color:color});
-  closeColorDropdown(); renderList();
-  try{await fetch(GAS_URL+'?key='+encodeURIComponent(ACCESS_KEY)+'&action=update_meta&id='+encodeURIComponent(sid)+'&route_color='+encodeURIComponent(color));}catch(e){}
-}
 document.addEventListener('click',function(e){
-  var dd=document.getElementById('colorDropdown');
-  if(dd.style.display!=='none'&&!dd.contains(e.target)&&!e.target.closest('.color-select-btn'))closeColorDropdown();
   if(!e.target.closest('.layer-wrap'))document.getElementById('layerMenu').classList.remove('open');
 });
 
@@ -659,9 +622,6 @@ function setupFilters(){
     } else if (action === 'toggle') {
       e.stopPropagation();
       toggleRouteVisible(id, card);
-    } else if (action === 'color') {
-      e.stopPropagation();
-      openColorDropdown(id, card);
     }
   });
 
